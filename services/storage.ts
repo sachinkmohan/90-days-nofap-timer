@@ -7,6 +7,26 @@ const KEYS = {
   CELEBRATION_SHOWN: '@celebration_shown',
 } as const;
 
+const MAX_HISTORY_ENTRIES = 100;
+
+// Simple async mutex for serializing history writes
+let historyWriteLock: Promise<void> = Promise.resolve();
+
+async function withHistoryLock<T>(fn: () => Promise<T>): Promise<T> {
+  let releaseLock: () => void;
+  const currentLock = historyWriteLock;
+  historyWriteLock = new Promise<void>((resolve) => {
+    releaseLock = resolve;
+  });
+
+  await currentLock;
+  try {
+    return await fn();
+  } finally {
+    releaseLock!();
+  }
+}
+
 export const StorageService = {
   // Timer State
   async getTimerState(): Promise<TimerState | null> {
