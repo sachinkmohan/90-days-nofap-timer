@@ -45,9 +45,22 @@ export const StorageService = {
   },
 
   async addHistoryEntry(entry: ResetEntry): Promise<void> {
-    const history = await this.getHistory();
-    history.unshift(entry); // Add to beginning (newest first)
-    await AsyncStorage.setItem(KEYS.RESET_HISTORY, JSON.stringify(history));
+    await withHistoryLock(async () => {
+      try {
+        const history = await this.getHistory();
+        history.unshift(entry); // Add to beginning (newest first)
+
+        // Enforce max history size
+        if (history.length > MAX_HISTORY_ENTRIES) {
+          history.length = MAX_HISTORY_ENTRIES;
+        }
+
+        await AsyncStorage.setItem(KEYS.RESET_HISTORY, JSON.stringify(history));
+      } catch (error) {
+        console.error('Failed to add history entry:', error);
+        throw error;
+      }
+    });
   },
 
   // Celebration tracking (keyed by streak start date to show once per streak)
