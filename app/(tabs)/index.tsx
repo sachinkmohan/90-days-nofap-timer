@@ -42,6 +42,7 @@ export default function TimerScreen() {
         <TimerDisplay countdown={countdown} />
         <ProgressBar
           progress={countdown.progress}
+          currentDays={countdown.days}
           hasReached90Days={countdown.hasReached90Days}
         />
       </View>

@@ -5,45 +5,49 @@
 
 import { Platform } from 'react-native';
 
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
+const tintColorLight = '#14B8A6';
+const tintColorDark = '#2DD4BF';
 
 export const Colors = {
   light: {
-    text: '#11181C',
-    background: '#fff',
+    text: '#1E293B',
+    background: '#FAFAF8',
     tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
+    icon: '#64748B',
+    tabIconDefault: '#64748B',
     tabIconSelected: tintColorLight,
     // Timer-specific colors
-    timerText: '#1a1a2e',
-    timerSecondary: '#687076',
-    progressFill: '#22c55e',
-    progressTrack: '#e5e7eb',
-    resetButton: '#6b7280',
-    resetButtonPressed: '#dc2626',
-    celebration: '#fbbf24',
-    cardBackground: '#f8f9fa',
-    border: '#e5e7eb',
+    timerText: '#1E293B',
+    timerSecondary: '#64748B',
+    progressFill: '#14B8A6',
+    progressTrack: '#E2E8F0',
+    milestoneAchieved: '#D4A574',
+    milestoneUpcoming: '#CBD5E1',
+    resetButton: '#9F8A8A',
+    resetButtonPressed: '#E57373',
+    celebration: '#D4A574',
+    cardBackground: '#FFFFFF',
+    border: '#E2E8F0',
   },
   dark: {
-    text: '#ECEDEE',
-    background: '#151718',
+    text: '#F8FAFC',
+    background: '#0F172A',
     tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
+    icon: '#94A3B8',
+    tabIconDefault: '#94A3B8',
     tabIconSelected: tintColorDark,
     // Timer-specific colors
-    timerText: '#f8f9fa',
-    timerSecondary: '#9BA1A6',
-    progressFill: '#22c55e',
-    progressTrack: '#374151',
-    resetButton: '#4b5563',
-    resetButtonPressed: '#dc2626',
-    celebration: '#f59e0b',
-    cardBackground: '#1f2937',
-    border: '#374151',
+    timerText: '#F8FAFC',
+    timerSecondary: '#94A3B8',
+    progressFill: '#2DD4BF',
+    progressTrack: '#334155',
+    milestoneAchieved: '#D4A574',
+    milestoneUpcoming: '#475569',
+    resetButton: '#A78B8B',
+    resetButtonPressed: '#EF9A9A',
+    celebration: '#D4A574',
+    cardBackground: '#1E293B',
+    border: '#334155',
   },
 };
 
