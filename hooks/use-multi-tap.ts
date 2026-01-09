@@ -28,21 +28,19 @@ export function useMultiTap(
   const handlePress = useCallback(() => {
     if (!enabled) return;
 
-    const now = Date.now();
-    const recentTaps = [...tapTimes, now].filter(
-      (time) => now - time < timeWindow
-    );
+    setTapTimes((prev) => {
+      const now = Date.now();
+      const recent = [...prev, now].filter((t) => now - t < timeWindow);
 
-    if (recentTaps.length >= tapsRequired) {
-      // Success! Trigger callback with haptic feedback
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      callback();
-      setTapTimes([]);
-    } else {
-      // Update tap times
-      setTapTimes(recentTaps);
-    }
-  }, [tapTimes, callback, enabled, tapsRequired, timeWindow]);
+      if (recent.length >= tapsRequired) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        callback();
+        return [];
+      }
+
+      return recent;
+    });
+  }, [callback, enabled, tapsRequired, timeWindow]);
 
   return { handlePress };
 }
