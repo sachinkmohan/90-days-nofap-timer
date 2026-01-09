@@ -8,6 +8,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { ThemedText } from '@/components/themed-text';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { useTimer } from '@/contexts/timer-context';
 
 interface ResetButtonProps {
   onReset: () => void;
@@ -16,6 +17,7 @@ interface ResetButtonProps {
 const HOLD_DURATION = 500; // ms to hold before triggering
 
 export function ResetButton({ onReset }: ResetButtonProps) {
+  const { isDevMode } = useTimer();
   const buttonColor = useThemeColor({}, 'resetButton');
   const pressedColor = useThemeColor({}, 'resetButtonPressed');
 
@@ -24,6 +26,7 @@ export function ResetButton({ onReset }: ResetButtonProps) {
   const holdTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const handlePressIn = () => {
+    if (isDevMode) return; // Disabled in dev mode
     setIsPressed(true);
     holdProgress.value = withTiming(1, { duration: HOLD_DURATION });
 
@@ -36,6 +39,7 @@ export function ResetButton({ onReset }: ResetButtonProps) {
   };
 
   const handlePressOut = () => {
+    if (isDevMode) return; // Disabled in dev mode
     setIsPressed(false);
     holdProgress.value = withTiming(0, { duration: 100 });
 
@@ -54,9 +58,11 @@ export function ResetButton({ onReset }: ResetButtonProps) {
       <Pressable
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
+        disabled={isDevMode}
         style={[
           styles.button,
           { backgroundColor: isPressed ? pressedColor : buttonColor },
+          isDevMode && styles.disabledButton,
         ]}>
         <Animated.View
           style={[
@@ -65,11 +71,13 @@ export function ResetButton({ onReset }: ResetButtonProps) {
             animatedFillStyle,
           ]}
         />
-        <ThemedText style={styles.buttonText}>
+        <ThemedText style={[styles.buttonText, isDevMode && styles.disabledText]}>
           {isPressed ? 'Hold to reset...' : 'Reset'}
         </ThemedText>
       </Pressable>
-      <ThemedText style={styles.hint}>Press and hold to reset timer</ThemedText>
+      <ThemedText style={styles.hint}>
+        {isDevMode ? 'Exit dev mode to reset' : 'Press and hold to reset timer'}
+      </ThemedText>
     </View>
   );
 }
@@ -104,5 +112,11 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontSize: 12,
     opacity: 0.5,
+  },
+  disabledButton: {
+    opacity: 0.4,
+  },
+  disabledText: {
+    opacity: 0.6,
   },
 });
