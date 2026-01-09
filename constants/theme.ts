@@ -28,6 +28,10 @@ export const Colors = {
     celebration: '#D4A574',
     cardBackground: '#FFFFFF',
     border: '#E2E8F0',
+    // Dev mode colors
+    devModeBanner: '#F59E0B',
+    devModeText: '#92400E',
+    devModeBackground: '#FEF3C7',
   },
   dark: {
     text: '#F8FAFC',
@@ -48,6 +52,10 @@ export const Colors = {
     celebration: '#D4A574',
     cardBackground: '#1E293B',
     border: '#334155',
+    // Dev mode colors
+    devModeBanner: '#F59E0B',
+    devModeText: '#FEF3C7',
+    devModeBackground: 'rgba(217, 119, 6, 0.2)',
   },
 };
 

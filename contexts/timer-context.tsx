@@ -7,6 +7,7 @@ import {
   type ReactNode,
 } from 'react';
 import { StorageService, generateUUID } from '@/services/storage';
+import { DevStorageService } from '@/services/dev-storage';
 import { useCountdown } from '@/hooks/use-countdown';
 import type { ResetEntry, CountdownValue } from '@/types/timer';
 
@@ -17,9 +18,16 @@ interface TimerContextValue {
   history: ResetEntry[];
   isLoading: boolean;
   celebrationShown: boolean;
+  // Dev mode state
+  isDevMode: boolean;
+  devStartDate: Date | null;
   // Actions
   resetTimer: (trigger?: string) => Promise<void>;
   markCelebrationShown: () => Promise<void>;
+  // Dev mode actions
+  enterDevMode: (devDate: Date) => Promise<void>;
+  exitDevMode: () => Promise<void>;
+  setDevStartDate: (date: Date) => Promise<void>;
 }
 
 const TimerContext = createContext<TimerContextValue | null>(null);
@@ -30,7 +38,14 @@ export function TimerProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [celebrationShown, setCelebrationShown] = useState(false);
 
-  const countdown = useCountdown(startDate);
+  // Dev mode state
+  const [isDevMode, setIsDevMode] = useState(false);
+  const [devStartDate, setDevStartDate] = useState<Date | null>(null);
+  const [realStartDate, setRealStartDate] = useState<Date | null>(null);
+
+  // Use dev start date if in dev mode, otherwise use real start date
+  const effectiveStartDate = isDevMode ? devStartDate : startDate;
+  const countdown = useCountdown(effectiveStartDate);
 
   // Initialize on mount
   useEffect(() => {
@@ -40,6 +55,7 @@ export function TimerProvider({ children }: { children: ReactNode }) {
       // Load existing state
       const timerState = await StorageService.getTimerState();
       const resetHistory = await StorageService.getHistory();
+      const devModeState = await DevStorageService.getDevMode();
 
       if (timerState) {
         // Existing user - restore state
@@ -58,6 +74,13 @@ export function TimerProvider({ children }: { children: ReactNode }) {
         await StorageService.setTimerState({ startDate: nowISO });
         setStartDate(now);
         setCelebrationShown(false);
+      }
+
+      // Restore dev mode state if it exists
+      if (devModeState && devModeState.isActive) {
+        setIsDevMode(true);
+        setDevStartDate(new Date(devModeState.devStartDate));
+        setRealStartDate(timerState ? new Date(timerState.startDate) : null);
       }
 
       setHistory(resetHistory);
@@ -104,6 +127,50 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     setCelebrationShown(true);
   }, [startDate]);
 
+  // Dev mode actions
+  const enterDevMode = useCallback(
+    async (devDate: Date) => {
+      // Save real start date for restoration
+      setRealStartDate(startDate);
+      setDevStartDate(devDate);
+      setIsDevMode(true);
+
+      // Persist dev mode state
+      await DevStorageService.setDevMode({
+        isActive: true,
+        devStartDate: devDate.toISOString(),
+        activatedAt: new Date().toISOString(),
+      });
+    },
+    [startDate]
+  );
+
+  const exitDevMode = useCallback(async () => {
+    // Restore real start date
+    if (realStartDate) {
+      setStartDate(realStartDate);
+    }
+
+    // Clear dev mode state
+    setIsDevMode(false);
+    setDevStartDate(null);
+    setRealStartDate(null);
+
+    // Clear from storage
+    await DevStorageService.clearDevMode();
+  }, [realStartDate]);
+
+  const setDevStartDateAction = useCallback(async (date: Date) => {
+    setDevStartDate(date);
+
+    // Update storage
+    await DevStorageService.setDevMode({
+      isActive: true,
+      devStartDate: date.toISOString(),
+      activatedAt: new Date().toISOString(),
+    });
+  }, []);
+
   return (
     <TimerContext.Provider
       value={{
@@ -112,8 +179,13 @@ export function TimerProvider({ children }: { children: ReactNode }) {
         history,
         isLoading,
         celebrationShown,
+        isDevMode,
+        devStartDate,
         resetTimer,
         markCelebrationShown,
+        enterDevMode,
+        exitDevMode,
+        setDevStartDate: setDevStartDateAction,
       }}>
       {children}
     </TimerContext.Provider>

@@ -1,17 +1,19 @@
 {
   "expo": {
-    "name": "90-days-nofap-timer",
-    "slug": "90-days-nofap-timer",
+    "name": "90-days-nofap-tracker",
+    "slug": "90-days-nofap-tracker",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "90daysnofaptimer",
+    "scheme": "ninetydaysnofaptracker",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true
     },
     "android": {
+      "package": "com.smohan.ninetydaysnofaptracker",
+      "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",

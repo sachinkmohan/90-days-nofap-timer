@@ -18,3 +18,9 @@ export interface CountdownValue {
   progress: number; // 0-100 representing % toward 90 days
   hasReached90Days: boolean;
 }
+
+export interface DevModeState {
+  isActive: boolean;
+  devStartDate: string; // ISO timestamp
+  activatedAt: string; // ISO timestamp - when dev mode was activated
+}
