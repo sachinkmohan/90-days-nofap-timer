@@ -24,6 +24,13 @@ export default function TimerScreen() {
     totalCleanDays,
   } = useTimer();
 
+  // Redirect to onboarding if not yet completed
+  useEffect(() => {
+    if (!isLoading && !startDate) {
+      router.replace('/onboarding');
+    }
+  }, [isLoading, startDate, router]);
+
   // Show celebration modal when 90 days is reached for the first time
   useEffect(() => {
     if (countdown.hasReached90Days && !celebrationShown && !isLoading) {
