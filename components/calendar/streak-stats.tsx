@@ -5,9 +5,10 @@ import { useThemeColor } from '@/hooks/use-theme-color';
 interface StreakStatsProps {
   currentStreakDays: number;
   totalCleanDays: number;
+  resetCount: number;
 }
 
-export function StreakStats({ currentStreakDays, totalCleanDays }: StreakStatsProps) {
+export function StreakStats({ currentStreakDays, totalCleanDays, resetCount }: StreakStatsProps) {
   const secondaryColor = useThemeColor({}, 'timerSecondary');
   const tintColor = useThemeColor({}, 'tint');
 
@@ -30,19 +31,28 @@ export function StreakStats({ currentStreakDays, totalCleanDays }: StreakStatsPr
           {totalCleanDays === 1 ? 'total clean day' : 'total clean days'}
         </ThemedText>
       </View>
+      <View style={[styles.divider, { backgroundColor: secondaryColor }]} />
+      <View style={styles.stat}>
+        <ThemedText style={[styles.value, { color: tintColor }]}>
+          {resetCount}
+        </ThemedText>
+        <ThemedText style={[styles.label, { color: secondaryColor }]}>
+          {resetCount === 1 ? 'reset' : 'resets'}
+        </ThemedText>
+      </View>
     </View>
   );
+
 }
 
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 16,
-    gap: 40,
   },
   stat: {
+    flex: 1,
     alignItems: 'center',
     gap: 2,
   },

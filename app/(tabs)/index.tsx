@@ -22,6 +22,7 @@ export default function TimerScreen() {
     calendarStartDate,
     calendarEvents,
     totalCleanDays,
+    history,
   } = useTimer();
 
   // Redirect to onboarding if not yet completed
@@ -67,6 +68,7 @@ export default function TimerScreen() {
         <StreakStats
           currentStreakDays={countdown.days}
           totalCleanDays={totalCleanDays}
+          resetCount={history.length}
         />
         {calendarStartDate && (
           <CalendarGrid startDate={calendarStartDate} calendarEvents={calendarEvents} />
