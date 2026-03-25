@@ -1,10 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { TimerState, ResetEntry } from '@/types/timer';
+import type { TimerState, ResetEntry, CalendarEvent } from '@/types/timer';
 
 const KEYS = {
   TIMER_STATE: '@timer_state',
   RESET_HISTORY: '@reset_history',
   CELEBRATION_SHOWN: '@celebration_shown',
+  CALENDAR_EVENTS: '@calendar_events',
+  CALENDAR_START_DATE: '@calendar_start_date',
 } as const;
 
 const MAX_HISTORY_ENTRIES = 100;
@@ -80,12 +82,44 @@ export const StorageService = {
     }
   },
 
+  // Calendar start date (fixed anchor - never changes on reset)
+  async getCalendarStartDate(): Promise<string | null> {
+    return AsyncStorage.getItem(KEYS.CALENDAR_START_DATE);
+  },
+
+  async setCalendarStartDate(isoDate: string): Promise<void> {
+    await AsyncStorage.setItem(KEYS.CALENDAR_START_DATE, isoDate);
+  },
+
+  // Calendar events
+  async getCalendarEvents(): Promise<CalendarEvent[]> {
+    const data = await AsyncStorage.getItem(KEYS.CALENDAR_EVENTS);
+    return data ? JSON.parse(data) : [];
+  },
+
+  async addCalendarEvent(event: CalendarEvent): Promise<void> {
+    await withHistoryLock(async () => {
+      try {
+        const events = await this.getCalendarEvents();
+        if (!events.some((e) => e.date === event.date)) {
+          events.push(event);
+          await AsyncStorage.setItem(KEYS.CALENDAR_EVENTS, JSON.stringify(events));
+        }
+      } catch (error) {
+        console.error('Failed to add calendar event:', error);
+        throw error;
+      }
+    });
+  },
+
   // Clear all data (for testing/debug)
   async clearAllData(): Promise<void> {
     await AsyncStorage.multiRemove([
       KEYS.TIMER_STATE,
       KEYS.RESET_HISTORY,
       KEYS.CELEBRATION_SHOWN,
+      KEYS.CALENDAR_EVENTS,
+      KEYS.CALENDAR_START_DATE,
     ]);
   },
 };
