@@ -98,11 +98,18 @@ export const StorageService = {
   },
 
   async addCalendarEvent(event: CalendarEvent): Promise<void> {
-    const events = await this.getCalendarEvents();
-    if (!events.some((e) => e.date === event.date)) {
-      events.push(event);
-      await AsyncStorage.setItem(KEYS.CALENDAR_EVENTS, JSON.stringify(events));
-    }
+    await withHistoryLock(async () => {
+      try {
+        const events = await this.getCalendarEvents();
+        if (!events.some((e) => e.date === event.date)) {
+          events.push(event);
+          await AsyncStorage.setItem(KEYS.CALENDAR_EVENTS, JSON.stringify(events));
+        }
+      } catch (error) {
+        console.error('Failed to add calendar event:', error);
+        throw error;
+      }
+    });
   },
 
   // Clear all data (for testing/debug)

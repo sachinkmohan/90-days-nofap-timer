@@ -10,7 +10,7 @@ export function toLocalDateStr(date: Date): string {
 }
 
 export function computeTotalCleanDays(history: ResetEntry[], currentDays: number): number {
-  return history.reduce((sum, e) => sum + e.streakDays, 0) + currentDays;
+  return history.reduce((sum, e) => sum + (e.streakDays || 0), 0) + currentDays;
 }
 
 export function getCalendarPage(startDate: Date): 0 | 1 | 2 {

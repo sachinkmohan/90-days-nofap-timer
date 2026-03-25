@@ -35,4 +35,20 @@ describe('StorageService.addCalendarEvent', () => {
     const events = await StorageService.getCalendarEvents();
     expect(events).toHaveLength(1);
   });
+
+  it('handles concurrent addCalendarEvent calls without losing events', async () => {
+    const event1 = { date: '2026-03-20', type: 'relapsed' as const };
+    const event2 = { date: '2026-03-21', type: 'relapsed' as const };
+
+    // Fire off both in parallel
+    await Promise.all([
+      StorageService.addCalendarEvent(event1),
+      StorageService.addCalendarEvent(event2),
+    ]);
+
+    const events = await StorageService.getCalendarEvents();
+    expect(events).toContainEqual(event1);
+    expect(events).toContainEqual(event2);
+    expect(events).toHaveLength(2);
+  });
 });

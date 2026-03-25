@@ -18,7 +18,7 @@ export function StreakStats({ currentStreakDays, totalCleanDays }: StreakStatsPr
           {currentStreakDays}
         </ThemedText>
         <ThemedText style={[styles.label, { color: secondaryColor }]}>
-          days sober
+          {currentStreakDays === 1 ? 'day sober' : 'days sober'}
         </ThemedText>
       </View>
       <View style={[styles.divider, { backgroundColor: secondaryColor }]} />
@@ -27,7 +27,7 @@ export function StreakStats({ currentStreakDays, totalCleanDays }: StreakStatsPr
           {totalCleanDays}
         </ThemedText>
         <ThemedText style={[styles.label, { color: secondaryColor }]}>
-          total clean days
+          {totalCleanDays === 1 ? 'total clean day' : 'total clean days'}
         </ThemedText>
       </View>
     </View>

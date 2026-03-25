@@ -2,6 +2,16 @@ import { getDayStatus, getCalendarPage, computeTotalCleanDays, toLocalDateStr } 
 import type { ResetEntry } from '@/types/timer';
 import type { CalendarEvent } from '@/types/timer';
 
+beforeAll(() => {
+  jest.useFakeTimers();
+  // Set a fixed date for all tests in this file: Wednesday, March 25, 2026
+  jest.setSystemTime(new Date('2026-03-25T12:00:00Z'));
+});
+
+afterAll(() => {
+  jest.useRealTimers();
+});
+
 function daysAgo(n: number): Date {
   const d = new Date();
   d.setDate(d.getDate() - n);
@@ -79,5 +89,16 @@ describe('computeTotalCleanDays', () => {
       { id: '2', resetDate: '', trigger: '', streakDays: 5 },
     ];
     expect(computeTotalCleanDays(history, 3)).toBe(22);
+  });
+
+  it('handles missing streakDays gracefully (returns 0 for them)', () => {
+    // @ts-ignore - simulating legacy data with missing fields
+    const legacyHistory: ResetEntry[] = [
+      { id: '1', resetDate: '', trigger: '' },
+      { id: '2', resetDate: '', trigger: '', streakDays: 5 },
+    ];
+    // Expected: 0 (missing) + 5 (present) + 3 (current) = 8
+    // If NOT robust, this would be NaN
+    expect(computeTotalCleanDays(legacyHistory, 3)).toBe(8);
   });
 });
