@@ -9,6 +9,17 @@ beforeEach(async () => {
   await AsyncStorage.clear();
 });
 
+describe('StorageService.onboarding', () => {
+  it('returns false when onboarding has not been completed', async () => {
+    expect(await StorageService.hasCompletedOnboarding()).toBe(false);
+  });
+
+  it('returns true after markOnboardingComplete is called', async () => {
+    await StorageService.markOnboardingComplete();
+    expect(await StorageService.hasCompletedOnboarding()).toBe(true);
+  });
+});
+
 describe('StorageService calendar start date', () => {
   it('returns null when no calendar start date has been set', async () => {
     const result = await StorageService.getCalendarStartDate();
@@ -50,5 +61,27 @@ describe('StorageService.addCalendarEvent', () => {
     expect(events).toContainEqual(event1);
     expect(events).toContainEqual(event2);
     expect(events).toHaveLength(2);
+  });
+});
+
+describe('StorageService.clear', () => {
+  it('clears history correctly', async () => {
+    await StorageService.addHistoryEntry({ id: '1', resetDate: '2026-03-20T00:00:00.000Z', trigger: '', streakDays: 5 });
+    let history = await StorageService.getHistory();
+    expect(history).toHaveLength(1);
+
+    await StorageService.clearHistory();
+    history = await StorageService.getHistory();
+    expect(history).toHaveLength(0);
+  });
+
+  it('clears calendar events correctly', async () => {
+    await StorageService.addCalendarEvent({ date: '2026-03-20', type: 'relapsed' });
+    let events = await StorageService.getCalendarEvents();
+    expect(events).toHaveLength(1);
+
+    await StorageService.clearCalendarEvents();
+    events = await StorageService.getCalendarEvents();
+    expect(events).toHaveLength(0);
   });
 });

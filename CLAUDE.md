@@ -26,11 +26,19 @@ This is an Expo SDK 54 React Native app using:
 
 - `app/` - File-based routing (expo-router)
   - `_layout.tsx` - Root layout with ThemeProvider and Stack navigator
-  - `(tabs)/` - Tab group with Home and Explore screens
-  - `modal.tsx` - Modal screen example
+  - `(tabs)/` - Tab group; `index.tsx` is the main timer screen
+  - `onboarding.tsx` - Date-picker onboarding flow (shown on first launch)
+  - `reset-modal.tsx`, `celebration-modal.tsx` - Modal screens
 - `components/` - Reusable UI components with theme support
 - `constants/theme.ts` - Color palette and font definitions for light/dark modes
+- `contexts/timer-context.tsx` - Central app state (startDate, history, calendar events, dev mode); exposes `useTimer()`
 - `hooks/` - Custom hooks including `useColorScheme` and `useThemeColor`
+- `services/storage.ts` - AsyncStorage persistence layer (`StorageService`)
+- `services/dev-storage.ts` - Dev-mode storage helpers
+- `utils/onboarding.ts` - Pure helpers: `isValidStartDate`, `isPastDate`, `shouldSkipOnboarding`, `MAX_DAYS_AGO`
+- `utils/calendar.ts` - Calendar computation helpers
+- `types/timer.ts` - Shared TypeScript interfaces (`ResetEntry`, `CalendarEvent`, etc.)
+- `__tests__/` - Jest unit tests (no React component tests; pure logic and storage only)
 
 ### Theming Pattern
 

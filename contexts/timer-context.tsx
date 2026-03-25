@@ -10,11 +10,13 @@ import { StorageService, generateUUID } from '@/services/storage';
 import { DevStorageService } from '@/services/dev-storage';
 import { useCountdown } from '@/hooks/use-countdown';
 import { computeTotalCleanDays, toLocalDateStr } from '@/utils/calendar';
+import { shouldSkipOnboarding } from '@/utils/onboarding';
 import type { ResetEntry, CountdownValue, CalendarEvent } from '@/types/timer';
 
 interface TimerContextValue {
   // State
   startDate: Date | null;
+  storedStartDate: Date | null; // raw persisted date, available before onboarding completes
   calendarStartDate: Date | null;
   countdown: CountdownValue;
   history: ResetEntry[];
@@ -26,6 +28,7 @@ interface TimerContextValue {
   isDevMode: boolean;
   devStartDate: Date | null;
   // Actions
+  completeOnboarding: (chosenDate: Date) => Promise<void>;
   resetTimer: (trigger?: string) => Promise<void>;
   markCelebrationShown: () => Promise<void>;
   // Dev mode actions
@@ -38,6 +41,7 @@ const TimerContext = createContext<TimerContextValue | null>(null);
 
 export function TimerProvider({ children }: { children: ReactNode }) {
   const [startDate, setStartDate] = useState<Date | null>(null);
+  const [storedStartDate, setStoredStartDate] = useState<Date | null>(null);
   const [history, setHistory] = useState<ResetEntry[]>([]);
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
   const [calendarStartDate, setCalendarStartDate] = useState<Date | null>(null);
@@ -63,34 +67,29 @@ export function TimerProvider({ children }: { children: ReactNode }) {
       const resetHistory = await StorageService.getHistory();
       const devModeState = await DevStorageService.getDevMode();
 
+      // Always surface the stored start date so onboarding can pre-populate it
       if (timerState) {
-        // Existing user - restore state
+        setStoredStartDate(new Date(timerState.startDate));
+      }
+
+      const onboardingDone = await StorageService.hasCompletedOnboarding();
+
+      if (onboardingDone && timerState) {
+        // Fully initialised user - restore state
         const date = new Date(timerState.startDate);
         setStartDate(date);
 
-        // Check if celebration was already shown for this streak
+        const existingCalendarStart = await StorageService.getCalendarStartDate();
+        if (existingCalendarStart) {
+          setCalendarStartDate(new Date(existingCalendarStart));
+        }
+
         const shown = await StorageService.hasCelebrationBeenShown(
           timerState.startDate
         );
         setCelebrationShown(shown);
-      } else {
-        // First launch - start timer now
-        const now = new Date();
-        const nowISO = now.toISOString();
-        await StorageService.setTimerState({ startDate: nowISO });
-        setStartDate(now);
-        setCelebrationShown(false);
       }
-
-      // Calendar start date: set once on first launch, never reset
-      const existingCalendarStart = await StorageService.getCalendarStartDate();
-      if (existingCalendarStart) {
-        setCalendarStartDate(new Date(existingCalendarStart));
-      } else {
-        const anchor = timerState ? new Date(timerState.startDate) : new Date();
-        await StorageService.setCalendarStartDate(anchor.toISOString());
-        setCalendarStartDate(anchor);
-      }
+      // else: onboarding not done → home screen redirects to /onboarding
 
       // Restore dev mode state if it exists
       if (devModeState && devModeState.isActive) {
@@ -107,6 +106,27 @@ export function TimerProvider({ children }: { children: ReactNode }) {
 
     initialize();
   }, []);
+
+  const completeOnboarding = useCallback(async (chosenDate: Date) => {
+    // Guard: skip destructive clearing if onboarding was already completed or a
+    // live startDate is already present (e.g. called twice / back-navigation race).
+    if (await shouldSkipOnboarding(startDate, StorageService.hasCompletedOnboarding)) return;
+
+    // Fresh start: wipe any legacy history or calendar events
+    // so total clean days starts at 0 + the days from chosenDate
+    await StorageService.clearHistory();
+    await StorageService.clearCalendarEvents();
+    setHistory([]);
+    setCalendarEvents([]);
+
+    const iso = chosenDate.toISOString();
+    await StorageService.setTimerState({ startDate: iso });
+    await StorageService.setCalendarStartDate(iso);
+    await StorageService.markOnboardingComplete();
+    setStartDate(chosenDate);
+    setCalendarStartDate(chosenDate);
+    setCelebrationShown(false);
+  }, [startDate]);
 
   const resetTimer = useCallback(
     async (trigger?: string) => {
@@ -203,6 +223,7 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     <TimerContext.Provider
       value={{
         startDate,
+        storedStartDate,
         calendarStartDate,
         countdown,
         history,
@@ -212,6 +233,7 @@ export function TimerProvider({ children }: { children: ReactNode }) {
         celebrationShown,
         isDevMode,
         devStartDate,
+        completeOnboarding,
         resetTimer,
         markCelebrationShown,
         enterDevMode,

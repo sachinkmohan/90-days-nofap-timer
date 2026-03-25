@@ -7,6 +7,7 @@ const KEYS = {
   CELEBRATION_SHOWN: '@celebration_shown',
   CALENDAR_EVENTS: '@calendar_events',
   CALENDAR_START_DATE: '@calendar_start_date',
+  ONBOARDING_COMPLETE: '@onboarding_complete',
 } as const;
 
 const MAX_HISTORY_ENTRIES = 100;
@@ -82,6 +83,16 @@ export const StorageService = {
     }
   },
 
+  // Onboarding
+  async hasCompletedOnboarding(): Promise<boolean> {
+    const val = await AsyncStorage.getItem(KEYS.ONBOARDING_COMPLETE);
+    return val === 'true';
+  },
+
+  async markOnboardingComplete(): Promise<void> {
+    await AsyncStorage.setItem(KEYS.ONBOARDING_COMPLETE, 'true');
+  },
+
   // Calendar start date (fixed anchor - never changes on reset)
   async getCalendarStartDate(): Promise<string | null> {
     return AsyncStorage.getItem(KEYS.CALENDAR_START_DATE);
@@ -112,6 +123,14 @@ export const StorageService = {
     });
   },
 
+  async clearHistory(): Promise<void> {
+    await AsyncStorage.removeItem(KEYS.RESET_HISTORY);
+  },
+
+  async clearCalendarEvents(): Promise<void> {
+    await AsyncStorage.removeItem(KEYS.CALENDAR_EVENTS);
+  },
+
   // Clear all data (for testing/debug)
   async clearAllData(): Promise<void> {
     await AsyncStorage.multiRemove([
@@ -120,6 +139,7 @@ export const StorageService = {
       KEYS.CELEBRATION_SHOWN,
       KEYS.CALENDAR_EVENTS,
       KEYS.CALENDAR_START_DATE,
+      KEYS.ONBOARDING_COMPLETE,
     ]);
   },
 };
