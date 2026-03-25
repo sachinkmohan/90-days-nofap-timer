@@ -10,6 +10,7 @@ import { StorageService, generateUUID } from '@/services/storage';
 import { DevStorageService } from '@/services/dev-storage';
 import { useCountdown } from '@/hooks/use-countdown';
 import { computeTotalCleanDays, toLocalDateStr } from '@/utils/calendar';
+import { shouldSkipOnboarding } from '@/utils/onboarding';
 import type { ResetEntry, CountdownValue, CalendarEvent } from '@/types/timer';
 
 interface TimerContextValue {
@@ -107,6 +108,10 @@ export function TimerProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const completeOnboarding = useCallback(async (chosenDate: Date) => {
+    // Guard: skip destructive clearing if onboarding was already completed or a
+    // live startDate is already present (e.g. called twice / back-navigation race).
+    if (await shouldSkipOnboarding(startDate, StorageService.hasCompletedOnboarding)) return;
+
     // Fresh start: wipe any legacy history or calendar events
     // so total clean days starts at 0 + the days from chosenDate
     await StorageService.clearHistory();
@@ -121,7 +126,7 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     setStartDate(chosenDate);
     setCalendarStartDate(chosenDate);
     setCelebrationShown(false);
-  }, []);
+  }, [startDate]);
 
   const resetTimer = useCallback(
     async (trigger?: string) => {
