@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View,
   StyleSheet,
   Pressable,
   Platform,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
@@ -36,18 +37,22 @@ function formatDateTime(date: Date): string {
 
 export default function OnboardingScreen() {
   const router = useRouter();
-  const { completeOnboarding, storedStartDate } = useTimer();
+  const { completeOnboarding, storedStartDate, isLoading } = useTimer();
   const [step, setStep] = useState<Step>('welcome');
 
   const now = new Date();
   const minDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
 
-  // Pre-populate with existing start date if valid, otherwise default to now
-  const defaultDate = storedStartDate && isValidStartDate(storedStartDate)
-    ? storedStartDate
-    : now;
+  // null until the timer context finishes loading so we don't flash a stale date
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
-  const [selectedDate, setSelectedDate] = useState(defaultDate);
+  // Sync selectedDate once hydration is complete
+  useEffect(() => {
+    if (isLoading) return;
+    setSelectedDate(
+      storedStartDate && isValidStartDate(storedStartDate) ? storedStartDate : new Date()
+    );
+  }, [isLoading, storedStartDate]);
 
   // Android: show each picker as a modal one at a time
   const [showDatePicker, setShowDatePicker] = useState(Platform.OS === 'ios');
@@ -59,24 +64,32 @@ export default function OnboardingScreen() {
   const cardBackground = useThemeColor({}, 'cardBackground');
   const borderColor = useThemeColor({}, 'border');
 
-  const showWarning = isPastDate(selectedDate);
-  const canConfirm = isValidStartDate(selectedDate);
+  const showWarning = selectedDate !== null && isPastDate(selectedDate);
+  const canConfirm = !isLoading && selectedDate !== null && isValidStartDate(selectedDate);
 
   const handleConfirm = async () => {
     if (!canConfirm) return;
-    await completeOnboarding(selectedDate);
+    await completeOnboarding(selectedDate!);
     router.replace('/(tabs)');
   };
 
   const onDateChange = (_: unknown, date?: Date) => {
     if (Platform.OS === 'android') setShowDatePicker(false);
-    if (date) setSelectedDate((prev) => mergeDateAndTime(date, prev));
+    if (date) setSelectedDate((prev) => mergeDateAndTime(date, prev ?? new Date()));
   };
 
   const onTimeChange = (_: unknown, date?: Date) => {
     if (Platform.OS === 'android') setShowTimePicker(false);
-    if (date) setSelectedDate((prev) => mergeDateAndTime(prev, date));
+    if (date) setSelectedDate((prev) => mergeDateAndTime(prev ?? new Date(), date));
   };
+
+  if (step === 'date' && selectedDate === null) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor }]}>
+        <ActivityIndicator style={styles.loader} />
+      </SafeAreaView>
+    );
+  }
 
   if (step === 'welcome') {
     return (
@@ -96,6 +109,10 @@ export default function OnboardingScreen() {
       </SafeAreaView>
     );
   }
+
+  // selectedDate is guaranteed non-null here: the loader guard above returned early
+  // when step === 'date' && selectedDate === null, and welcome returned above.
+  const syncedDate = selectedDate!;
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor }]}>
@@ -118,7 +135,7 @@ export default function OnboardingScreen() {
           {Platform.OS === 'android' && (
             <Pressable onPress={() => setShowDatePicker(true)}>
               <ThemedText style={[styles.androidPickerValue, { color: tintColor }]}>
-                {selectedDate.toLocaleDateString(undefined, {
+                {syncedDate.toLocaleDateString(undefined, {
                   weekday: 'short', month: 'short', day: 'numeric', year: 'numeric',
                 })}
               </ThemedText>
@@ -126,7 +143,7 @@ export default function OnboardingScreen() {
           )}
           {showDatePicker && (
             <DateTimePicker
-              value={selectedDate}
+              value={syncedDate}
               mode="date"
               display={Platform.OS === 'ios' ? 'spinner' : 'default'}
               onChange={onDateChange}
@@ -145,7 +162,7 @@ export default function OnboardingScreen() {
           {Platform.OS === 'android' && (
             <Pressable onPress={() => setShowTimePicker(true)}>
               <ThemedText style={[styles.androidPickerValue, { color: tintColor }]}>
-                {selectedDate.toLocaleTimeString(undefined, {
+                {syncedDate.toLocaleTimeString(undefined, {
                   hour: '2-digit', minute: '2-digit',
                 })}
               </ThemedText>
@@ -153,7 +170,7 @@ export default function OnboardingScreen() {
           )}
           {showTimePicker && (
             <DateTimePicker
-              value={selectedDate}
+              value={syncedDate}
               mode="time"
               display={Platform.OS === 'ios' ? 'spinner' : 'default'}
               onChange={onTimeChange}
@@ -163,7 +180,7 @@ export default function OnboardingScreen() {
         </View>
 
         <ThemedText style={[styles.selectedSummary, { color: secondaryColor }]}>
-          {formatDateTime(selectedDate)}
+          {formatDateTime(syncedDate)}
         </ThemedText>
 
         {showWarning && (
@@ -278,5 +295,8 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.4,
+  },
+  loader: {
+    flex: 1,
   },
 });
