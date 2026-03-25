@@ -9,13 +9,17 @@ import {
 import { StorageService, generateUUID } from '@/services/storage';
 import { DevStorageService } from '@/services/dev-storage';
 import { useCountdown } from '@/hooks/use-countdown';
-import type { ResetEntry, CountdownValue } from '@/types/timer';
+import { computeTotalCleanDays, toLocalDateStr } from '@/utils/calendar';
+import type { ResetEntry, CountdownValue, CalendarEvent } from '@/types/timer';
 
 interface TimerContextValue {
   // State
   startDate: Date | null;
+  calendarStartDate: Date | null;
   countdown: CountdownValue;
   history: ResetEntry[];
+  calendarEvents: CalendarEvent[];
+  totalCleanDays: number;
   isLoading: boolean;
   celebrationShown: boolean;
   // Dev mode state
@@ -35,6 +39,8 @@ const TimerContext = createContext<TimerContextValue | null>(null);
 export function TimerProvider({ children }: { children: ReactNode }) {
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [history, setHistory] = useState<ResetEntry[]>([]);
+  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
+  const [calendarStartDate, setCalendarStartDate] = useState<Date | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [celebrationShown, setCelebrationShown] = useState(false);
 
@@ -76,6 +82,16 @@ export function TimerProvider({ children }: { children: ReactNode }) {
         setCelebrationShown(false);
       }
 
+      // Calendar start date: set once on first launch, never reset
+      const existingCalendarStart = await StorageService.getCalendarStartDate();
+      if (existingCalendarStart) {
+        setCalendarStartDate(new Date(existingCalendarStart));
+      } else {
+        const anchor = timerState ? new Date(timerState.startDate) : new Date();
+        await StorageService.setCalendarStartDate(anchor.toISOString());
+        setCalendarStartDate(anchor);
+      }
+
       // Restore dev mode state if it exists
       if (devModeState && devModeState.isActive) {
         setIsDevMode(true);
@@ -83,7 +99,9 @@ export function TimerProvider({ children }: { children: ReactNode }) {
         setRealStartDate(timerState ? new Date(timerState.startDate) : null);
       }
 
+      const events = await StorageService.getCalendarEvents();
       setHistory(resetHistory);
+      setCalendarEvents(events);
       setIsLoading(false);
     }
 
@@ -106,6 +124,14 @@ export function TimerProvider({ children }: { children: ReactNode }) {
         trigger: trigger?.trim().slice(0, 50) || '',
         streakDays,
       };
+
+      // Record relapse on the calendar
+      const todayStr = toLocalDateStr(now);
+      const relapseEvent: CalendarEvent = { date: todayStr, type: 'relapsed' };
+      await StorageService.addCalendarEvent(relapseEvent);
+      setCalendarEvents((prev) =>
+        prev.some((e) => e.date === todayStr) ? prev : [...prev, relapseEvent]
+      );
 
       await StorageService.addHistoryEntry(entry);
 
@@ -171,12 +197,17 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const totalCleanDays = computeTotalCleanDays(history, countdown.days);
+
   return (
     <TimerContext.Provider
       value={{
         startDate,
+        calendarStartDate,
         countdown,
         history,
+        calendarEvents,
+        totalCleanDays,
         isLoading,
         celebrationShown,
         isDevMode,

@@ -1,18 +1,28 @@
 import { useEffect } from 'react';
-import { StyleSheet, View, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, ActivityIndicator, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TimerDisplay } from '@/components/timer/timer-display';
 import { ProgressBar } from '@/components/timer/progress-bar';
 import { ResetButton } from '@/components/timer/reset-button';
+import { StreakStats } from '@/components/calendar/streak-stats';
+import { CalendarGrid } from '@/components/calendar/calendar-grid';
 import { useTimer } from '@/contexts/timer-context';
 import { useThemeColor } from '@/hooks/use-theme-color';
 
 export default function TimerScreen() {
   const router = useRouter();
   const backgroundColor = useThemeColor({}, 'background');
-  const { countdown, isLoading, celebrationShown, markCelebrationShown } =
-    useTimer();
+  const {
+    countdown,
+    isLoading,
+    celebrationShown,
+    markCelebrationShown,
+    startDate,
+    calendarStartDate,
+    calendarEvents,
+    totalCleanDays,
+  } = useTimer();
 
   // Show celebration modal when 90 days is reached for the first time
   useEffect(() => {
@@ -38,14 +48,27 @@ export default function TimerScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor }]} edges={['top']}>
-      <View style={styles.content}>
-        <TimerDisplay countdown={countdown} />
-        <ProgressBar
-          progress={countdown.progress}
-          currentDays={countdown.days}
-          hasReached90Days={countdown.hasReached90Days}
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <StreakStats
+          currentStreakDays={countdown.days}
+          totalCleanDays={totalCleanDays}
         />
-      </View>
+        {calendarStartDate && (
+          <CalendarGrid startDate={calendarStartDate} calendarEvents={calendarEvents} />
+        )}
+        <View style={styles.timerSection}>
+          <TimerDisplay countdown={countdown} />
+          <ProgressBar
+            progress={countdown.progress}
+            currentDays={countdown.days}
+            hasReached90Days={countdown.hasReached90Days}
+          />
+        </View>
+      </ScrollView>
       <ResetButton onReset={handleReset} />
     </SafeAreaView>
   );
@@ -60,8 +83,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  content: {
+  scroll: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+  },
+  timerSection: {
     flex: 1,
     justifyContent: 'center',
+    paddingBottom: 16,
   },
 });

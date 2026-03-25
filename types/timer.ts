@@ -19,6 +19,11 @@ export interface CountdownValue {
   hasReached90Days: boolean;
 }
 
+export interface CalendarEvent {
+  date: string; // 'YYYY-MM-DD'
+  type: 'relapsed';
+}
+
 export interface DevModeState {
   isActive: boolean;
   devStartDate: string; // ISO timestamp
