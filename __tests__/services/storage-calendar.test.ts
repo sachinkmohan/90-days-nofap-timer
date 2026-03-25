@@ -66,8 +66,7 @@ describe('StorageService.addCalendarEvent', () => {
 
 describe('StorageService.clear', () => {
   it('clears history correctly', async () => {
-    // @ts-ignore
-    await StorageService.addHistoryEntry({ id: '1', streakDays: 5 });
+    await StorageService.addHistoryEntry({ id: '1', resetDate: '2026-03-20T00:00:00.000Z', trigger: '', streakDays: 5 });
     let history = await StorageService.getHistory();
     expect(history).toHaveLength(1);
 
