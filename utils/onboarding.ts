@@ -1,4 +1,4 @@
-const MAX_DAYS_AGO = 90;
+export const MAX_DAYS_AGO = 90;
 
 export async function shouldSkipOnboarding(
   startDate: Date | null,

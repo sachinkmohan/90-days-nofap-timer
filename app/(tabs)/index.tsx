@@ -53,6 +53,10 @@ export default function TimerScreen() {
     );
   }
 
+  if (!startDate) {
+    return null;
+  }
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor }]} edges={['top']}>
       <ScrollView
