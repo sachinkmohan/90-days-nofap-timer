@@ -2,7 +2,7 @@
   "expo": {
     "name": "90-days-nofap-tracker",
     "slug": "90-days-nofap-tracker",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon-ninety-days.png",
     "scheme": "ninetydaysnofaptracker",
@@ -53,6 +53,12 @@
       "eas": {
         "projectId": "8840b376-e098-4f9c-9fc1-798b8ca88f1b"
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/8840b376-e098-4f9c-9fc1-798b8ca88f1b"
     }
   }
 }
