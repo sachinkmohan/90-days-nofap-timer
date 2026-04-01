@@ -1,4 +1,4 @@
-# 108 Motivational Quotes for a NoFap / Self-Mastery App
+# 117 Motivational Quotes for a NoFap / Self-Mastery App
 
 Below are **108 unique, copy-paste-ready quotes** organized across 10 categories. Each includes the exact quote text, attribution, and a source URL. These are curated for maximum resonance with someone on a 90-day abstinence, discipline, or porn addiction recovery challenge.
 
