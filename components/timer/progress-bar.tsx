@@ -1,6 +1,6 @@
-import { StyleSheet, View } from 'react-native';
-import { ThemedText } from '@/components/themed-text';
-import { useThemeColor } from '@/hooks/use-theme-color';
+import { ThemedText } from "@/components/themed-text";
+import { useThemeColor } from "@/hooks/use-theme-color";
+import { StyleSheet, View } from "react-native";
 
 interface ProgressBarProps {
   progress: number; // 0-100
@@ -16,12 +16,12 @@ export function ProgressBar({
   currentDays,
   hasReached90Days,
 }: ProgressBarProps) {
-  const trackColor = useThemeColor({}, 'progressTrack');
-  const fillColor = useThemeColor({}, 'progressFill');
-  const celebrationColor = useThemeColor({}, 'celebration');
-  const secondaryColor = useThemeColor({}, 'timerSecondary');
-  const milestoneAchieved = useThemeColor({}, 'milestoneAchieved');
-  const milestoneUpcoming = useThemeColor({}, 'milestoneUpcoming');
+  const trackColor = useThemeColor({}, "progressTrack");
+  const fillColor = useThemeColor({}, "progressFill");
+  const celebrationColor = useThemeColor({}, "celebration");
+  const secondaryColor = useThemeColor({}, "timerSecondary");
+  const milestoneAchieved = useThemeColor({}, "milestoneAchieved");
+  const milestoneUpcoming = useThemeColor({}, "milestoneUpcoming");
 
   const barColor = hasReached90Days ? celebrationColor : fillColor;
 
@@ -59,8 +59,10 @@ export function ProgressBar({
                   left: `${position}%`,
                   backgroundColor: isAchieved
                     ? milestoneAchieved
-                    : 'transparent',
-                  borderColor: isAchieved ? milestoneAchieved : milestoneUpcoming,
+                    : "transparent",
+                  borderColor: isAchieved
+                    ? milestoneAchieved
+                    : milestoneUpcoming,
                 },
               ]}
             />
@@ -82,34 +84,34 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   labelRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: 12,
   },
   label: {
     fontSize: 14,
-    fontWeight: '400',
+    fontWeight: "400",
   },
   percentage: {
     fontSize: 14,
-    fontWeight: '500',
-    fontVariant: ['tabular-nums'],
+    fontWeight: "500",
+    fontVariant: ["tabular-nums"],
   },
   trackContainer: {
-    position: 'relative',
+    position: "relative",
     height: 8,
   },
   track: {
     height: 8,
     borderRadius: 4,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   fill: {
-    height: '100%',
+    height: "100%",
     borderRadius: 4,
   },
   milestone: {
-    position: 'absolute',
+    position: "absolute",
     top: -2,
     width: 12,
     height: 12,
@@ -120,7 +122,7 @@ const styles = StyleSheet.create({
   completeText: {
     marginTop: 12,
     fontSize: 14,
-    fontWeight: '500',
-    textAlign: 'center',
+    fontWeight: "500",
+    textAlign: "center",
   },
 });
