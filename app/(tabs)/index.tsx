@@ -1,18 +1,19 @@
-import { useEffect } from 'react';
-import { StyleSheet, View, ActivityIndicator, ScrollView } from 'react-native';
-import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { TimerDisplay } from '@/components/timer/timer-display';
-import { ProgressBar } from '@/components/timer/progress-bar';
-import { ResetButton } from '@/components/timer/reset-button';
-import { StreakStats } from '@/components/calendar/streak-stats';
-import { CalendarGrid } from '@/components/calendar/calendar-grid';
-import { useTimer } from '@/contexts/timer-context';
-import { useThemeColor } from '@/hooks/use-theme-color';
+import { CalendarGrid } from "@/components/calendar/calendar-grid";
+import { StreakStats } from "@/components/calendar/streak-stats";
+import { DailyMantraBanner } from "@/components/daily-mantra/daily-mantra-banner";
+import { ProgressBar } from "@/components/timer/progress-bar";
+import { ResetButton } from "@/components/timer/reset-button";
+import { TimerDisplay } from "@/components/timer/timer-display";
+import { useTimer } from "@/contexts/timer-context";
+import { useThemeColor } from "@/hooks/use-theme-color";
+import { useRouter } from "expo-router";
+import { useEffect } from "react";
+import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function TimerScreen() {
   const router = useRouter();
-  const backgroundColor = useThemeColor({}, 'background');
+  const backgroundColor = useThemeColor({}, "background");
   const {
     countdown,
     isLoading,
@@ -28,7 +29,7 @@ export default function TimerScreen() {
   // Redirect to onboarding if not yet completed
   useEffect(() => {
     if (!isLoading && !startDate) {
-      router.replace('/onboarding');
+      router.replace("/onboarding");
     }
   }, [isLoading, startDate, router]);
 
@@ -36,12 +37,18 @@ export default function TimerScreen() {
   useEffect(() => {
     if (countdown.hasReached90Days && !celebrationShown && !isLoading) {
       markCelebrationShown();
-      router.push('/celebration-modal');
+      router.push("/celebration-modal");
     }
-  }, [countdown.hasReached90Days, celebrationShown, isLoading, markCelebrationShown, router]);
+  }, [
+    countdown.hasReached90Days,
+    celebrationShown,
+    isLoading,
+    markCelebrationShown,
+    router,
+  ]);
 
   const handleReset = () => {
-    router.push('/reset-modal');
+    router.push("/reset-modal");
   };
 
   if (isLoading) {
@@ -59,7 +66,11 @@ export default function TimerScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor }]} edges={['top']}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor }]}
+      edges={["top"]}
+    >
+      <DailyMantraBanner streakDays={countdown.days} />
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
@@ -71,7 +82,10 @@ export default function TimerScreen() {
           resetCount={history.length}
         />
         {calendarStartDate && (
-          <CalendarGrid startDate={calendarStartDate} calendarEvents={calendarEvents} />
+          <CalendarGrid
+            startDate={calendarStartDate}
+            calendarEvents={calendarEvents}
+          />
         )}
         <View style={styles.timerSection}>
           <TimerDisplay countdown={countdown} />
@@ -93,8 +107,8 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   scroll: {
     flex: 1,
@@ -104,7 +118,7 @@ const styles = StyleSheet.create({
   },
   timerSection: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
     paddingBottom: 16,
   },
 });
