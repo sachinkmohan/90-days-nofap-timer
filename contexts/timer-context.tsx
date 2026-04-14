@@ -124,6 +124,7 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     await AsyncStorage.setItem('@rounds', JSON.stringify(allRounds));
 
     await StorageService.markOnboardingComplete();
+    setAllRounds(allRounds);
     setCurrentRound(round);
   }, []);
 
@@ -135,16 +136,28 @@ export function TimerProvider({ children }: { children: ReactNode }) {
       relapseCountThatDay: countToday + 1,
     };
     await StorageService.saveRelapse(currentRound.id, event);
-    setCurrentRound((prev) =>
-      prev ? { ...prev, relapses: [...prev.relapses, event] } : prev
-    );
+    setCurrentRound((prev) => {
+      if (!prev) return prev;
+      const updated = { ...prev, relapses: [...prev.relapses, event] };
+      setAllRounds((rounds) =>
+        rounds.map((r) => (r.id === updated.id ? updated : r))
+      );
+      return updated;
+    });
   }, [currentRound]);
 
   const finishRound = useCallback(async () => {
     if (!currentRound) return;
     const endDate = new Date().toISOString();
     await StorageService.completeRound(currentRound.id, endDate);
-    setCurrentRound((prev) => prev ? { ...prev, endDate } : prev);
+    setCurrentRound((prev) => {
+      if (!prev) return prev;
+      const updated = { ...prev, endDate };
+      setAllRounds((rounds) =>
+        rounds.map((r) => (r.id === updated.id ? updated : r))
+      );
+      return updated;
+    });
   }, [currentRound]);
 
   const startNewRound = useCallback(async () => {
@@ -198,9 +211,14 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     for (const event of testRelapses) {
       await StorageService.saveRelapse(currentRound.id, event);
     }
-    setCurrentRound((prev) =>
-      prev ? { ...prev, relapses: [...prev.relapses, ...testRelapses] } : prev
-    );
+    setCurrentRound((prev) => {
+      if (!prev) return prev;
+      const updated = { ...prev, relapses: [...prev.relapses, ...testRelapses] };
+      setAllRounds((rounds) =>
+        rounds.map((r) => (r.id === updated.id ? updated : r))
+      );
+      return updated;
+    });
   }, [currentRound]);
 
   const setDevStartDate = useCallback(async (date: Date) => {
