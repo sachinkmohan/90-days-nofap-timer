@@ -27,6 +27,13 @@ export default function RootLayout() {
             }}
           />
           <Stack.Screen
+            name="relapse-modal"
+            options={{
+              presentation: 'modal',
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
             name="celebration-modal"
             options={{
               presentation: 'modal',

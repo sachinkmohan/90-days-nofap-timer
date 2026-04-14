@@ -1,4 +1,4 @@
-import { getRelapseCardDisplayMode } from '@/utils/relapse-card';
+import { getRelapseCardDisplayMode, getRelapseMessage } from '@/utils/relapse-card';
 
 beforeAll(() => {
   jest.useFakeTimers();
@@ -32,5 +32,27 @@ describe('getRelapseCardDisplayMode', () => {
   it('returns days at exactly 24h', () => {
     const exactly24h = new Date('2026-04-13T12:00:00Z').toISOString();
     expect(getRelapseCardDisplayMode(exactly24h)).toBe('days');
+  });
+});
+
+describe('getRelapseMessage', () => {
+  it('returns encouragement when no relapses today yet', () => {
+    expect(getRelapseMessage(0)).toBe(
+      "One setback doesn't define your journey. If you feel the urge to go again today, that's the chaser effect. It passes."
+    );
+  });
+
+  it('returns chaser effect message when 1 relapse already today', () => {
+    expect(getRelapseMessage(1)).toBe(
+      "What you're feeling right now is the chaser effect. It's strongest in the next few hours, then it passes. Just get through today."
+    );
+  });
+
+  it('returns null when 2 relapses already today', () => {
+    expect(getRelapseMessage(2)).toBeNull();
+  });
+
+  it('returns null when 5 relapses already today', () => {
+    expect(getRelapseMessage(5)).toBeNull();
   });
 });

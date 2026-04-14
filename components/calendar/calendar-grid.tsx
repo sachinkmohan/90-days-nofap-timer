@@ -109,22 +109,11 @@ export function CalendarGrid({ startDate, relapses }: CalendarGridProps) {
                             !isFuture && !isRelapsed && !isToday && { color: '#fff' },
                             isToday && { color: tintColor, fontWeight: '600' },
                             isFuture && { color: secondaryColor, opacity: 0.35 },
+                            isRelapsed && { color: relapsedColor, fontWeight: '600' },
                           ]}
                         >
-                          {dayNumber}
+                          {isRelapsed ? `×${relapseCount}` : dayNumber}
                         </ThemedText>
-                        {isRelapsed && (
-                          <View style={styles.relapseBadgeRow}>
-                            <View
-                              style={[styles.relapseDot, { backgroundColor: relapsedColor }]}
-                            />
-                            {relapseCount > 1 && (
-                              <ThemedText style={[styles.relapseCount, { color: relapsedColor }]}>
-                                {relapseCount}
-                              </ThemedText>
-                            )}
-                          </View>
-                        )}
                       </View>
                     </View>
                   );
@@ -181,23 +170,6 @@ const styles = StyleSheet.create({
   dayNumber: {
     fontSize: 9,
     fontWeight: '400',
-    fontVariant: ['tabular-nums'],
-  },
-  relapseBadgeRow: {
-    position: 'absolute',
-    bottom: 2,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 1,
-  },
-  relapseDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-  },
-  relapseCount: {
-    fontSize: 6,
-    fontWeight: '600',
     fontVariant: ['tabular-nums'],
   },
   indicators: {

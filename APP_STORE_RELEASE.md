@@ -95,12 +95,12 @@ Work through these in order. Each one builds on the previous.
 - [x] Update calendar to show red dot + relapse count number on relapse days
 
 ### Relapse Flow (`app/reset-modal.tsx`)
-- [ ] Rename/repurpose to `app/relapse-modal.tsx`
-- [ ] On open, check `relapseCountToday`:
+- [x] Rename/repurpose to `app/relapse-modal.tsx`
+- [x] On open, check `relapseCountToday`:
   - **0 relapses today** → show *"One setback doesn't define your journey. Keep going."*, log and close
   - **1 relapse today** → show *"This happens. It's called the chaser effect. Each moment you can choose to stop."*, log and close
   - **2+ relapses today** → log silently, close immediately. No message.
-- [ ] Remove all logic that restarts the 90-day clock
+- [x] Remove all logic that restarts the 90-day clock
 
 ### Round End (`app/round-summary.tsx`)
 - [ ] Detect when `dayInRound` reaches 90 in `timer-context.tsx`
