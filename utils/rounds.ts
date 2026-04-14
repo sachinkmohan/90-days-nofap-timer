@@ -2,7 +2,7 @@ import { differenceInDays, isSameDay } from 'date-fns';
 import type { RelapseEvent } from '@/types/timer';
 
 export function getDayInRound(startDate: string): number {
-  const day = differenceInDays(new Date(), new Date(startDate)) + 1;
+  const day = Math.max(differenceInDays(new Date(), new Date(startDate)) + 1, 1);
   return Math.min(day, 90);
 }
 

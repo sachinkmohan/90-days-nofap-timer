@@ -78,7 +78,7 @@ describe('getRoundDuration', () => {
     expect(getRoundDuration('2026-01-01T00:00:00Z', '2026-01-01T23:59:00Z')).toBe(1);
   });
 
-  it('returns 90 for a full 90-day round', () => {
+  it('returns 91 for inclusive-day count over a 90-day span', () => {
     expect(getRoundDuration('2026-01-01T00:00:00Z', '2026-04-01T00:00:00Z')).toBe(91);
   });
 

@@ -140,11 +140,15 @@ export const StorageService = {
   },
 
   async startNewRound(): Promise<Round> {
+    return this.createRoundWithDate(new Date().toISOString());
+  },
+
+  async createRoundWithDate(startDate: string): Promise<Round> {
     const rounds = await this.getRounds();
     const round: Round = {
       id: generateUUID(),
       roundNumber: rounds.length + 1,
-      startDate: new Date().toISOString(),
+      startDate,
       endDate: null,
       relapses: [],
     };
@@ -156,7 +160,10 @@ export const StorageService = {
   async saveRelapse(roundId: string, event: RelapseEvent): Promise<void> {
     const rounds = await this.getRounds();
     const idx = rounds.findIndex((r) => r.id === roundId);
-    if (idx === -1) return;
+    if (idx === -1) {
+      console.warn(`saveRelapse: round not found for id "${roundId}"`);
+      return;
+    }
     rounds[idx].relapses.push(event);
     await AsyncStorage.setItem(KEYS.ROUNDS, JSON.stringify(rounds));
   },
@@ -164,7 +171,10 @@ export const StorageService = {
   async completeRound(roundId: string, endDate: string): Promise<void> {
     const rounds = await this.getRounds();
     const idx = rounds.findIndex((r) => r.id === roundId);
-    if (idx === -1) return;
+    if (idx === -1) {
+      console.warn(`completeRound: round not found for id "${roundId}"`);
+      return;
+    }
     rounds[idx].endDate = endDate;
     await AsyncStorage.setItem(KEYS.ROUNDS, JSON.stringify(rounds));
   },

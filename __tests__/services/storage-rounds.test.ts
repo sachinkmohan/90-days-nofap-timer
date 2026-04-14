@@ -90,6 +90,30 @@ describe('StorageService check-ins', () => {
   });
 });
 
+describe('StorageService.createRoundWithDate', () => {
+  it('creates a round anchored to the given startDate', async () => {
+    const startDate = '2026-01-01T00:00:00.000Z';
+    const round = await StorageService.createRoundWithDate(startDate);
+    expect(round.startDate).toBe(startDate);
+    expect(round.roundNumber).toBe(1);
+    expect(round.endDate).toBeNull();
+    expect(round.relapses).toEqual([]);
+  });
+
+  it('persists the round so getRounds returns it', async () => {
+    const round = await StorageService.createRoundWithDate('2026-01-01T00:00:00.000Z');
+    const rounds = await StorageService.getRounds();
+    expect(rounds).toHaveLength(1);
+    expect(rounds[0].id).toBe(round.id);
+  });
+
+  it('increments roundNumber when prior rounds exist', async () => {
+    await StorageService.startNewRound();
+    const round = await StorageService.createRoundWithDate('2026-06-01T00:00:00.000Z');
+    expect(round.roundNumber).toBe(2);
+  });
+});
+
 describe('StorageService.clearAllData', () => {
   it('wipes rounds and check-ins', async () => {
     await StorageService.startNewRound();

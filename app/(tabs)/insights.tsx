@@ -12,6 +12,7 @@ function RoundCard({ round, isActive }: { round: Round; isActive: boolean }) {
   const secondary = useThemeColor({}, 'timerSecondary');
   const tint = useThemeColor({}, 'tint');
   const celebration = useThemeColor({}, 'celebration');
+  const badgeText = useThemeColor({}, 'badgeText');
 
   const duration = getRoundDuration(round.startDate, round.endDate);
   const longestStreak = getLongestCleanStreak(
@@ -40,12 +41,12 @@ function RoundCard({ round, isActive }: { round: Round; isActive: boolean }) {
         <ThemedText style={styles.roundTitle}>Round {round.roundNumber}</ThemedText>
         {isActive && (
           <View style={[styles.activeBadge, { backgroundColor: tint }]}>
-            <ThemedText style={styles.activeBadgeText}>Active</ThemedText>
+            <ThemedText style={[styles.activeBadgeText, { color: badgeText }]}>Active</ThemedText>
           </View>
         )}
         {!isActive && (
           <View style={[styles.activeBadge, { backgroundColor: celebration }]}>
-            <ThemedText style={styles.activeBadgeText}>Complete</ThemedText>
+            <ThemedText style={[styles.activeBadgeText, { color: badgeText }]}>Complete</ThemedText>
           </View>
         )}
       </View>
@@ -147,7 +148,7 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: 6,
   },
-  activeBadgeText: { fontSize: 11, fontWeight: '600', color: '#fff' },
+  activeBadgeText: { fontSize: 11, fontWeight: '600' },
   dateRange: { fontSize: 13 },
   stats: {
     flexDirection: 'row',

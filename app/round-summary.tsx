@@ -3,12 +3,14 @@ import { useTimer } from '@/contexts/timer-context';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { getLongestCleanStreak, getRoundComparison } from '@/utils/round-summary';
 import { useRouter } from 'expo-router';
+import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function RoundSummaryScreen() {
   const router = useRouter();
   const { currentRound, allRounds, finishRound, startNewRound } = useTimer();
+  const isStartingRound = useRef(false);
 
   const backgroundColor = useThemeColor({}, 'background');
   const cardBackground = useThemeColor({}, 'cardBackground');
@@ -17,6 +19,12 @@ export default function RoundSummaryScreen() {
   const tint = useThemeColor({}, 'tint');
   const celebration = useThemeColor({}, 'celebration');
 
+  useEffect(() => {
+    if (!currentRound) {
+      router.replace('/(tabs)');
+    }
+  }, [currentRound, router]);
+
   if (!currentRound) return null;
 
   const totalRelapses = currentRound.relapses.length;
@@ -24,9 +32,15 @@ export default function RoundSummaryScreen() {
   const comparison = getRoundComparison(allRounds);
 
   const handleStartNextRound = async () => {
-    await finishRound();
-    await startNewRound();
-    router.replace('/(tabs)');
+    if (isStartingRound.current) return;
+    isStartingRound.current = true;
+    try {
+      await finishRound();
+      await startNewRound();
+      router.replace('/(tabs)');
+    } finally {
+      isStartingRound.current = false;
+    }
   };
 
   return (

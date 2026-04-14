@@ -48,12 +48,12 @@ Work through these in order. Each one builds on the previous.
 
 ### Data Model
 - [x] Replace current "start date" concept with a `Round` type in `types/timer.ts`:
-  ```
+  ```ts
   Round: { id, roundNumber, startDate, endDate | null, relapses: RelapseEvent[] }
   RelapseEvent: { timestamp: string, relapseCountThatDay: number }
   ```
 - [x] Add `CheckInEntry` type to `types/timer.ts`:
-  ```
+  ```ts
   CheckInEntry: { date: string, mood: 'struggling' | 'neutral' | 'strong', note?: string }
   ```
 - [x] Wipe existing AsyncStorage data on next app open (no migration needed)
@@ -74,7 +74,7 @@ Work through these in order. Each one builds on the previous.
   - `relapseCountToday` — how many relapses logged today via `isSameDay`
   - `checkIns` — all check-in entries
   - `todayCheckIn` — today's check-in entry or null
-- [x] Remove old `startDate` / `history` / `countdown` driven logic
+- [x] Remove old `startDate` / `history` / `countdown-driven` logic
 - [x] Add `logRelapse()` action — handles chaser effect logic internally
 - [x] Add `completeRound()` and `startNewRound()` actions
 - [x] Add `saveCheckIn(entry)` action

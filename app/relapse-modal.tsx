@@ -3,12 +3,14 @@ import { useTimer } from '@/contexts/timer-context';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { getRelapseMessage } from '@/utils/relapse-card';
 import { useRouter } from 'expo-router';
+import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function RelapseModal() {
   const router = useRouter();
   const { relapseCountToday, logRelapse } = useTimer();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const backgroundColor = useThemeColor({}, 'background');
   const cardBackground = useThemeColor({}, 'cardBackground');
@@ -18,8 +20,14 @@ export default function RelapseModal() {
   const message = getRelapseMessage(relapseCountToday);
 
   const handleLogRelapse = async () => {
-    await logRelapse();
-    router.dismiss();
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      await logRelapse();
+      router.dismiss();
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -29,8 +37,9 @@ export default function RelapseModal() {
           <ThemedText style={styles.message}>{message}</ThemedText>
         )}
         <Pressable
-          style={[styles.button, { backgroundColor: tint }]}
+          style={[styles.button, { backgroundColor: tint, opacity: isSubmitting ? 0.6 : 1 }]}
           onPress={handleLogRelapse}
+          disabled={isSubmitting}
         >
           <ThemedText style={styles.buttonText}>Log relapse</ThemedText>
         </Pressable>

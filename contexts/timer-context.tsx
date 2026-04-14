@@ -6,7 +6,7 @@ import {
   useCallback,
   type ReactNode,
 } from 'react';
-import { StorageService, generateUUID } from '@/services/storage';
+import { StorageService } from '@/services/storage';
 import { DevStorageService } from '@/services/dev-storage';
 import { getDayInRound, getDaysSinceLastRelapse, getRelapseCountToday } from '@/utils/rounds';
 import { shouldSkipOnboarding } from '@/utils/onboarding';
@@ -109,22 +109,9 @@ export function TimerProvider({ children }: { children: ReactNode }) {
 
     await StorageService.clearAllData();
 
-    const rounds = await StorageService.getRounds();
-    // Create first round anchored to the chosen date
-    const round: Round = {
-      id: generateUUID(),
-      roundNumber: rounds.length + 1,
-      startDate: chosenDate.toISOString(),
-      endDate: null,
-      relapses: [],
-    };
-    const allRounds = [...rounds, round];
-    // Persist via startNewRound-equivalent inline to use chosen date
-    const { default: AsyncStorage } = await import('@react-native-async-storage/async-storage');
-    await AsyncStorage.setItem('@rounds', JSON.stringify(allRounds));
-
+    const round = await StorageService.createRoundWithDate(chosenDate.toISOString());
     await StorageService.markOnboardingComplete();
-    setAllRounds(allRounds);
+    setAllRounds([round]);
     setCurrentRound(round);
   }, []);
 
@@ -202,11 +189,11 @@ export function TimerProvider({ children }: { children: ReactNode }) {
   const devSeedRelapses = useCallback(async () => {
     if (!currentRound) return;
     const start = new Date(currentRound.startDate);
-    const testRelapses = [5, 12, 35].map((daysOffset, i) => {
+    const testRelapses = [5, 12, 35].map((daysOffset) => {
       const d = new Date(start);
       d.setDate(d.getDate() + daysOffset);
       d.setSeconds(d.getSeconds() + Math.floor(Math.random() * 3600)); // unique timestamp
-      return { timestamp: d.toISOString(), relapseCountThatDay: i + 1 };
+      return { timestamp: d.toISOString(), relapseCountThatDay: 1 };
     });
     for (const event of testRelapses) {
       await StorageService.saveRelapse(currentRound.id, event);

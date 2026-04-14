@@ -143,8 +143,7 @@ export default function DevMenuModal() {
               style={[styles.actionButton, { backgroundColor, borderColor }]}
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                router.dismiss();
-                router.push('/round-summary');
+                router.dismissTo('/round-summary');
               }}>
               <ThemedText style={styles.presetLabel}>View Round Summary</ThemedText>
             </Pressable>

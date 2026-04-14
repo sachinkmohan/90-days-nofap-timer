@@ -5,7 +5,7 @@ import { RelapseCard } from '@/components/timer/relapse-card';
 import { useTimer } from '@/contexts/timer-context';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
@@ -31,19 +31,21 @@ export default function TimerScreen() {
 
   // Navigate to round summary when day 90 is reached.
   // redirectedToSummary prevents a loop when the user taps "Maybe later".
+  // Resets whenever the active round changes so detection works for each new round.
   const [redirectedToSummary, setRedirectedToSummary] = useState(false);
+  const lastRoundIdRef = useRef(currentRound?.id);
 
   useEffect(() => {
+    if (currentRound?.id !== lastRoundIdRef.current) {
+      lastRoundIdRef.current = currentRound?.id;
+      setRedirectedToSummary(false);
+      return;
+    }
     if (!isLoading && currentRound && dayInRound >= 90 && !currentRound.endDate && !redirectedToSummary) {
       setRedirectedToSummary(true);
       router.push('/round-summary');
     }
   }, [isLoading, currentRound, dayInRound, router, redirectedToSummary]);
-
-  // Reset flag when a new round starts so day-90 detection works again
-  useEffect(() => {
-    setRedirectedToSummary(false);
-  }, [currentRound?.id]);
 
   const handleLogRelapse = () => {
     router.push('/relapse-modal');

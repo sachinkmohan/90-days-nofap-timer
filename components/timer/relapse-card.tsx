@@ -32,7 +32,12 @@ export function RelapseCard({
   return (
     <View style={[styles.card, { backgroundColor: cardBg, borderColor: border }]}>
       <ThemedText style={[styles.status, { color: secondary }]}>{statusText}</ThemedText>
-      <Pressable onPress={onLogRelapse} style={styles.action}>
+      <Pressable
+        onPress={onLogRelapse}
+        style={styles.action}
+        accessibilityRole="button"
+        accessibilityLabel="Log a relapse"
+      >
         <ThemedText style={[styles.actionText, { color: tint }]}>Log a relapse →</ThemedText>
       </Pressable>
     </View>

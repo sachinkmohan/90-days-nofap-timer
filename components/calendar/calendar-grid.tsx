@@ -2,7 +2,6 @@ import { ThemedText } from '@/components/themed-text';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import type { RelapseEvent } from '@/types/timer';
 import { getCalendarPage } from '@/utils/calendar';
-import { getRelapsesForDay } from '@/utils/relapse-card';
 import { useRef, useState } from 'react';
 import {
   ScrollView,
@@ -35,11 +34,19 @@ export function CalendarGrid({ startDate, relapses }: CalendarGridProps) {
   const trackColor = useThemeColor({}, 'progressTrack');
   const cleanColor = useThemeColor({}, 'progressFill');
   const relapsedColor = useThemeColor({}, 'resetButtonPressed');
+  const badgeText = useThemeColor({}, 'badgeText');
 
   const initialPage = getCalendarPage(startDate);
   const [activePage, setActivePage] = useState(initialPage);
 
   const todayStr = toLocalDateStr(new Date());
+
+  // Precompute relapse counts per date string for O(1) lookup in render
+  const relapseMap = relapses.reduce<Record<string, number>>((acc, r) => {
+    const dateStr = toLocalDateStr(new Date(r.timestamp));
+    acc[dateStr] = (acc[dateStr] ?? 0) + 1;
+    return acc;
+  }, {});
 
   const PADDING = 16;
   const GAP = 4;
@@ -83,7 +90,7 @@ export function CalendarGrid({ startDate, relapses }: CalendarGridProps) {
 
                   const isFuture = dayStr > todayStr;
                   const isToday = dayStr === todayStr;
-                  const relapseCount = isFuture ? 0 : getRelapsesForDay(relapses, dayStr);
+                  const relapseCount = isFuture ? 0 : (relapseMap[dayStr] ?? 0);
                   const isRelapsed = relapseCount > 0;
 
                   return (
@@ -106,7 +113,7 @@ export function CalendarGrid({ startDate, relapses }: CalendarGridProps) {
                         <ThemedText
                           style={[
                             styles.dayNumber,
-                            !isFuture && !isRelapsed && !isToday && { color: '#fff' },
+                            !isFuture && !isRelapsed && !isToday && { color: badgeText },
                             isToday && { color: tintColor, fontWeight: '600' },
                             isFuture && { color: secondaryColor, opacity: 0.35 },
                             isRelapsed && { color: relapsedColor, fontWeight: '600' },

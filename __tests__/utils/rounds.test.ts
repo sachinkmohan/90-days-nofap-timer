@@ -42,6 +42,12 @@ describe('getDayInRound', () => {
   it('clamps to 90 when round has gone past 90 days', () => {
     expect(getDayInRound(daysAgo(100))).toBe(90);
   });
+
+  it('returns 1 when startDate is in the future', () => {
+    const future = new Date();
+    future.setDate(future.getDate() + 5);
+    expect(getDayInRound(future.toISOString())).toBe(1);
+  });
 });
 
 describe('getDaysSinceLastRelapse', () => {

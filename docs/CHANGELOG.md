@@ -43,7 +43,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-## [Unreleased] — NFT-13
+## [Pre-release] — NFT-13
 
 ### Added
 - `shouldSkipOnboarding(startDate, hasCompletedOnboarding)` pure async helper in `utils/onboarding.ts` — returns `true` if onboarding should be skipped based on in-memory state or the persisted flag, short-circuiting the storage call when `startDate` is already set
