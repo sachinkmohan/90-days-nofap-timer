@@ -103,14 +103,14 @@ Work through these in order. Each one builds on the previous.
 - [x] Remove all logic that restarts the 90-day clock
 
 ### Round End (`app/round-summary.tsx`)
-- [ ] Detect when `dayInRound` reaches 90 in `timer-context.tsx`
-- [ ] Navigate to round summary screen automatically
-- [ ] Round summary shows:
+- [x] Detect when `dayInRound` reaches 90 in `timer-context.tsx`
+- [x] Navigate to round summary screen automatically
+- [x] Round summary shows:
   - "You completed Round [X]"
   - Total relapses in the round
   - Longest clean streak within the round
   - If Round 2+: *"Round 1: 8 relapses → Round 2: 5 relapses"*
-- [ ] "Start Round [X+1]" button → calls `startNewRound()`, navigates to home
+- [x] "Start Round [X+1]" button → calls `startNewRound()`, navigates to home
 
 ---
 

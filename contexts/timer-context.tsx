@@ -15,6 +15,7 @@ import type { Round, CheckInEntry } from '@/types/timer';
 
 interface TimerContextValue {
   // Round state
+  allRounds: Round[];
   currentRound: Round | null;
   roundNumber: number;
   dayInRound: number;
@@ -44,6 +45,7 @@ interface TimerContextValue {
 const TimerContext = createContext<TimerContextValue | null>(null);
 
 export function TimerProvider({ children }: { children: ReactNode }) {
+  const [allRounds, setAllRounds] = useState<Round[]>([]);
   const [currentRound, setCurrentRound] = useState<Round | null>(null);
   const [checkIns, setCheckIns] = useState<CheckInEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -82,6 +84,7 @@ export function TimerProvider({ children }: { children: ReactNode }) {
 
       const freshRounds = await StorageService.getRounds();
       const activeRound = freshRounds.findLast((r) => r.endDate === null) ?? null;
+      setAllRounds(freshRounds);
       setCurrentRound(activeRound);
 
       const storedCheckIns = await StorageService.getCheckIns();
@@ -145,6 +148,7 @@ export function TimerProvider({ children }: { children: ReactNode }) {
 
   const startNewRound = useCallback(async () => {
     const round = await StorageService.startNewRound();
+    setAllRounds((prev) => [...prev, round]);
     setCurrentRound(round);
   }, []);
 
@@ -193,6 +197,7 @@ export function TimerProvider({ children }: { children: ReactNode }) {
   return (
     <TimerContext.Provider
       value={{
+        allRounds,
         currentRound,
         roundNumber: currentRound?.roundNumber ?? 1,
         dayInRound,

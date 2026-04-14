@@ -34,6 +34,13 @@ export default function RootLayout() {
             }}
           />
           <Stack.Screen
+            name="round-summary"
+            options={{
+              headerShown: false,
+              gestureEnabled: false,
+            }}
+          />
+          <Stack.Screen
             name="celebration-modal"
             options={{
               presentation: 'modal',

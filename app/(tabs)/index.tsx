@@ -29,6 +29,13 @@ export default function TimerScreen() {
     }
   }, [isLoading, currentRound, router]);
 
+  // Navigate to round summary when day 90 is reached
+  useEffect(() => {
+    if (!isLoading && currentRound && dayInRound >= 90 && !currentRound.endDate) {
+      router.replace('/round-summary');
+    }
+  }, [isLoading, currentRound, dayInRound, router]);
+
   const handleLogRelapse = () => {
     router.push('/relapse-modal');
   };
