@@ -94,12 +94,12 @@ Work through these in order. Each one builds on the previous.
   - Tapping opens check-in modal
 - [x] Update calendar to show red dot + relapse count number on relapse days
 
-### Relapse Flow (`app/reset-modal.tsx`)
+### Relapse Flow (`app/relapse-modal.tsx`)
 - [x] Rename/repurpose to `app/relapse-modal.tsx`
 - [x] On open, check `relapseCountToday`:
-  - **0 relapses today** → show *"One setback doesn't define your journey. Keep going."*, log and close
-  - **1 relapse today** → show *"This happens. It's called the chaser effect. Each moment you can choose to stop."*, log and close
-  - **2+ relapses today** → log silently, close immediately. No message.
+  - **0 relapses today** → show *"One setback doesn't define your journey. If you feel the urge to go again today, that's the chaser effect. It passes."*, log and close
+  - **1 relapse today** → show *"What you're feeling right now is the chaser effect. It's strongest in the next few hours, then it passes. Just get through today."*, log and close
+  - **2+ relapses today** → modal opens with no message, just "Log relapse" button
 - [x] Remove all logic that restarts the 90-day clock
 
 ### Round End (`app/round-summary.tsx`)
@@ -111,6 +111,39 @@ Work through these in order. Each one builds on the previous.
   - Longest clean streak within the round
   - If Round 2+: *"Round 1: 8 relapses → Round 2: 5 relapses"*
 - [x] "Start Round [X+1]" button → calls `startNewRound()`, navigates to home
+- [x] "Maybe later" button → dismisses summary without starting new round
+
+---
+
+## Unplanned — Built Early
+
+These were originally out of scope but built during Feature 1 development.
+
+### Insights Tab (`app/(tabs)/insights.tsx`)
+- [x] New tab showing all rounds (active + completed) as cards
+- [x] Per card: round number, date range, total relapses, longest clean streak, days
+- [x] Active round highlighted with teal border + "Active" badge
+- [x] Completed rounds show gold "Complete" badge
+- [x] Newest round shown first
+- [x] Empty state until first round exists
+
+### History Tab Rewrite (`app/(tabs)/history.tsx`)
+- [x] Replaced old `ResetEntry[]` model with `RelapseEvent[]` from current round
+- [x] Shows relapse events newest-first with date + relative time
+- [x] Note: full check-in + journal integration still planned in Feature 3
+
+### Dev Mode Improvements
+- [x] Fixed `startDate` reference (old API) → now shows `currentRound.startDate` + current day
+- [x] Added "Seed 3 relapses" button — injects test relapses on days 5, 12, 35 of current round
+- [x] Added "View Round Summary" button — navigates directly to summary screen
+- [x] Fixed multi-tap navigation crash (`router.push` inside state updater → deferred via `setTimeout`)
+
+### Calendar UX Change
+- [x] Relapse days show `×N` instead of day number (option C) — no overlap, no extra space needed
+
+### Context Refactor
+- [x] `currentRound` derived from `allRounds` (single source of truth, no sync bugs)
+- [x] `allRounds` exposed in context for Insights tab and round comparison
 
 ---
 
@@ -200,7 +233,7 @@ Work through these in order. Each one builds on the previous.
 
 ## Out of Scope for This Release
 
-- Insights / stats screen — build after real check-in data exists from real users
+- ~~Insights / stats screen~~ — built early (round history cards, no check-in data yet)
 - Custom notification time picker — presets are enough for v1, add later in settings
 - Home screen widget
 - Monetization / Pro tier

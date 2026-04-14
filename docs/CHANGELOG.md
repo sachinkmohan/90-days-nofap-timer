@@ -6,6 +6,43 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [Unreleased] — Feature 1: Round Model + Home Screen Redesign
+
+### Added
+- **Round model** — replaced streak-based timer with a fixed 90-day round. Relapses are logged events within the round; the clock never stops
+- `Round`, `RelapseEvent`, `CheckInEntry` types in `types/timer.ts`; old `TimerState` and `ResetEntry` removed
+- `StorageService` round methods: `getRounds()`, `startNewRound()`, `saveRelapse()`, `completeRound()`, `getCheckIns()`, `saveCheckIn()`
+- `utils/rounds.ts` — pure helpers: `getDayInRound()`, `getDaysSinceLastRelapse()`, `getRelapseCountToday()`
+- `utils/relapse-card.ts` — pure helpers: `getRelapseCardDisplayMode()` (none/precise/days), `getRelapsesForDay()`, `getRelapseMessage()`
+- `utils/round-summary.ts` — pure helpers: `getLongestCleanStreak()`, `getRoundComparison()`, `getRoundDuration()`
+- **Home screen redesign** (`app/(tabs)/index.tsx`): hero "Day X of 90", updated `ProgressBar`, new `RelapseCard` and `CheckInCard` components, calendar wired to round relapses
+- `components/timer/relapse-card.tsx` — shows precise time (<24h) or day count (≥24h), "Log a relapse →" action
+- `components/timer/checkin-card.tsx` — pending or completed state, taps open check-in modal
+- **Relapse modal** (`app/relapse-modal.tsx`): context-aware chaser effect messages (0 relapses → encouragement, 1 relapse → chaser warning, 2+ → button only, no message)
+- **Round summary screen** (`app/round-summary.tsx`): total relapses, longest clean streak, round comparison (Round 2+), "Start Round X+1" and "Maybe later" buttons
+- **Insights tab** (`app/(tabs)/insights.tsx`): all rounds as cards with stats — relapses, longest streak, duration. Active round highlighted
+- **History tab** rewritten to show `RelapseEvent[]` from current round (temporary; full journal integration in Feature 3)
+- `allRounds` exposed from `TimerContext`; `currentRound` derived from `allRounds` (single source of truth, eliminates sync bugs)
+- Dev menu enhancements: "Seed 3 relapses" button, "View Round Summary" button, current day counter display
+- `date-fns` installed and used for all time/date calculations
+
+### Changed
+- `ProgressBar` props simplified to `dayInRound` only — computes progress internally
+- `CalendarGrid` updated to accept `RelapseEvent[]`; relapse days display `×N` instead of day number
+- `timer-context.tsx` fully rewritten around `allRounds` state; dev mode preserved
+
+### Fixed
+- Multi-tap dev menu crash — `router.push` inside `setTapTimes` state updater deferred via `setTimeout`
+- Duplicate FlatList keys in history screen when seeding relapses multiple times
+- Round summary redirect loop — uses `router.push` + `redirectedToSummary` flag to prevent re-navigation after "Maybe later"
+- `allRounds` sync bug — `logRelapse`, `finishRound`, and `devSeedRelapses` now update both `currentRound` and the corresponding entry in `allRounds`, so Insights tab and round comparison always reflect live data
+
+### Tests
+- 89 tests across 9 suites (up from 63)
+- New suites: `storage-rounds`, `rounds`, `relapse-card`, `relapse-calendar`, `round-summary`
+
+---
+
 ## [Unreleased] — NFT-13
 
 ### Added

@@ -26,18 +26,27 @@ This is an Expo SDK 54 React Native app using:
 
 - `app/` - File-based routing (expo-router)
   - `_layout.tsx` - Root layout with ThemeProvider and Stack navigator
-  - `(tabs)/` - Tab group; `index.tsx` is the main timer screen
+  - `(tabs)/` - Tab group: `index.tsx` (home), `history.tsx`, `insights.tsx`
   - `onboarding.tsx` - Date-picker onboarding flow (shown on first launch)
-  - `reset-modal.tsx`, `celebration-modal.tsx` - Modal screens
+  - `relapse-modal.tsx` - Chaser effect modal (replaces old reset-modal)
+  - `round-summary.tsx` - End-of-round summary screen
+  - `dev-menu-modal.tsx` - Dev tools (5-tap History tab to open)
 - `components/` - Reusable UI components with theme support
+  - `components/timer/relapse-card.tsx` - Relapse status + "Log a relapse →"
+  - `components/timer/checkin-card.tsx` - Daily check-in prompt or completed state
+  - `components/timer/progress-bar.tsx` - Accepts `dayInRound`, computes progress internally
+  - `components/calendar/calendar-grid.tsx` - Accepts `RelapseEvent[]`, shows `×N` on relapse days
 - `constants/theme.ts` - Color palette and font definitions for light/dark modes
-- `contexts/timer-context.tsx` - Central app state (startDate, history, calendar events, dev mode); exposes `useTimer()`
+- `contexts/timer-context.tsx` - Central app state; `allRounds` and `currentRound` are kept in sync — mutations (`logRelapse`, `finishRound`, `devSeedRelapses`) update both. Exposes `useTimer()`
 - `hooks/` - Custom hooks including `useColorScheme` and `useThemeColor`
 - `services/storage.ts` - AsyncStorage persistence layer (`StorageService`)
-- `services/dev-storage.ts` - Dev-mode storage helpers
+- `services/dev-storage.ts` - Dev-mode storage helpers and presets
 - `utils/onboarding.ts` - Pure helpers: `isValidStartDate`, `isPastDate`, `shouldSkipOnboarding`, `MAX_DAYS_AGO`
 - `utils/calendar.ts` - Calendar computation helpers
-- `types/timer.ts` - Shared TypeScript interfaces (`ResetEntry`, `CalendarEvent`, etc.)
+- `utils/rounds.ts` - Pure helpers: `getDayInRound`, `getDaysSinceLastRelapse`, `getRelapseCountToday`
+- `utils/relapse-card.ts` - Pure helpers: `getRelapseCardDisplayMode`, `getRelapsesForDay`, `getRelapseMessage`
+- `utils/round-summary.ts` - Pure helpers: `getLongestCleanStreak`, `getRoundComparison`, `getRoundDuration`
+- `types/timer.ts` - Shared TypeScript interfaces: `Round`, `RelapseEvent`, `CheckInEntry`, `CalendarEvent`, `DevModeState`
 - `__tests__/` - Jest unit tests (no React component tests; pure logic and storage only)
 
 ### Theming Pattern
