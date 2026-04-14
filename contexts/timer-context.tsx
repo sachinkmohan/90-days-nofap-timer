@@ -8,29 +8,33 @@ import {
 } from 'react';
 import { StorageService, generateUUID } from '@/services/storage';
 import { DevStorageService } from '@/services/dev-storage';
-import { useCountdown } from '@/hooks/use-countdown';
-import { computeTotalCleanDays, toLocalDateStr } from '@/utils/calendar';
+import { getDayInRound, getDaysSinceLastRelapse, getRelapseCountToday } from '@/utils/rounds';
 import { shouldSkipOnboarding } from '@/utils/onboarding';
-import type { ResetEntry, CountdownValue, CalendarEvent } from '@/types/timer';
+import { isSameDay } from 'date-fns';
+import type { Round, CheckInEntry } from '@/types/timer';
 
 interface TimerContextValue {
-  // State
-  startDate: Date | null;
-  storedStartDate: Date | null; // raw persisted date, available before onboarding completes
-  calendarStartDate: Date | null;
-  countdown: CountdownValue;
-  history: ResetEntry[];
-  calendarEvents: CalendarEvent[];
-  totalCleanDays: number;
+  // Round state
+  currentRound: Round | null;
+  roundNumber: number;
+  dayInRound: number;
+  daysSinceLastRelapse: number | null;
+  lastRelapseTimestamp: string | null;
+  relapseCountToday: number;
+  // Check-in state
+  checkIns: CheckInEntry[];
+  todayCheckIn: CheckInEntry | null;
+  // App state
   isLoading: boolean;
-  celebrationShown: boolean;
   // Dev mode state
   isDevMode: boolean;
   devStartDate: Date | null;
   // Actions
   completeOnboarding: (chosenDate: Date) => Promise<void>;
-  resetTimer: (trigger?: string) => Promise<void>;
-  markCelebrationShown: () => Promise<void>;
+  logRelapse: () => Promise<void>;
+  finishRound: () => Promise<void>;
+  startNewRound: () => Promise<void>;
+  saveCheckIn: (entry: CheckInEntry) => Promise<void>;
   // Dev mode actions
   enterDevMode: (devDate: Date) => Promise<void>;
   exitDevMode: () => Promise<void>;
@@ -40,67 +44,56 @@ interface TimerContextValue {
 const TimerContext = createContext<TimerContextValue | null>(null);
 
 export function TimerProvider({ children }: { children: ReactNode }) {
-  const [startDate, setStartDate] = useState<Date | null>(null);
-  const [storedStartDate, setStoredStartDate] = useState<Date | null>(null);
-  const [history, setHistory] = useState<ResetEntry[]>([]);
-  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
-  const [calendarStartDate, setCalendarStartDate] = useState<Date | null>(null);
+  const [currentRound, setCurrentRound] = useState<Round | null>(null);
+  const [checkIns, setCheckIns] = useState<CheckInEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [celebrationShown, setCelebrationShown] = useState(false);
 
   // Dev mode state
   const [isDevMode, setIsDevMode] = useState(false);
-  const [devStartDate, setDevStartDate] = useState<Date | null>(null);
-  const [realStartDate, setRealStartDate] = useState<Date | null>(null);
+  const [devStartDate, setDevStartDateState] = useState<Date | null>(null);
+  const [realRound, setRealRound] = useState<Round | null>(null);
 
-  // Use dev start date if in dev mode, otherwise use real start date
-  const effectiveStartDate = isDevMode ? devStartDate : startDate;
-  const countdown = useCountdown(effectiveStartDate);
+  const effectiveRound = isDevMode
+    ? currentRound
+      ? { ...currentRound, startDate: devStartDate?.toISOString() ?? currentRound.startDate }
+      : null
+    : currentRound;
 
-  // Initialize on mount
+  // Derived values
+  const dayInRound = effectiveRound ? getDayInRound(effectiveRound.startDate) : 1;
+  const relapses = effectiveRound?.relapses ?? [];
+  const daysSinceLastRelapse = getDaysSinceLastRelapse(relapses);
+  const relapseCountToday = getRelapseCountToday(relapses);
+  const lastRelapseTimestamp = relapses.length > 0
+    ? relapses.reduce((a, b) => new Date(a.timestamp) > new Date(b.timestamp) ? a : b).timestamp
+    : null;
+  const today = new Date().toISOString().split('T')[0];
+  const todayCheckIn = checkIns.find((c) => c.date === today) ?? null;
+
   useEffect(() => {
     async function initialize() {
       setIsLoading(true);
 
-      // Load existing state
-      const timerState = await StorageService.getTimerState();
-      const resetHistory = await StorageService.getHistory();
+      // Wipe old data model on first load (no real users yet)
+      const rounds = await StorageService.getRounds();
+      if (rounds.length === 0) {
+        await StorageService.clearAllData();
+      }
+
+      const freshRounds = await StorageService.getRounds();
+      const activeRound = freshRounds.findLast((r) => r.endDate === null) ?? null;
+      setCurrentRound(activeRound);
+
+      const storedCheckIns = await StorageService.getCheckIns();
+      setCheckIns(storedCheckIns);
+
       const devModeState = await DevStorageService.getDevMode();
-
-      // Always surface the stored start date so onboarding can pre-populate it
-      if (timerState) {
-        setStoredStartDate(new Date(timerState.startDate));
-      }
-
-      const onboardingDone = await StorageService.hasCompletedOnboarding();
-
-      if (onboardingDone && timerState) {
-        // Fully initialised user - restore state
-        const date = new Date(timerState.startDate);
-        setStartDate(date);
-
-        const existingCalendarStart = await StorageService.getCalendarStartDate();
-        if (existingCalendarStart) {
-          setCalendarStartDate(new Date(existingCalendarStart));
-        }
-
-        const shown = await StorageService.hasCelebrationBeenShown(
-          timerState.startDate
-        );
-        setCelebrationShown(shown);
-      }
-      // else: onboarding not done → home screen redirects to /onboarding
-
-      // Restore dev mode state if it exists
-      if (devModeState && devModeState.isActive) {
+      if (devModeState?.isActive) {
         setIsDevMode(true);
-        setDevStartDate(new Date(devModeState.devStartDate));
-        setRealStartDate(timerState ? new Date(timerState.startDate) : null);
+        setDevStartDateState(new Date(devModeState.devStartDate));
+        setRealRound(activeRound);
       }
 
-      const events = await StorageService.getCalendarEvents();
-      setHistory(resetHistory);
-      setCalendarEvents(events);
       setIsLoading(false);
     }
 
@@ -108,108 +101,88 @@ export function TimerProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const completeOnboarding = useCallback(async (chosenDate: Date) => {
-    // Guard: skip destructive clearing if onboarding was already completed or a
-    // live startDate is already present (e.g. called twice / back-navigation race).
-    if (await shouldSkipOnboarding(startDate, StorageService.hasCompletedOnboarding)) return;
+    if (await shouldSkipOnboarding(null, StorageService.hasCompletedOnboarding)) return;
 
-    // Fresh start: wipe any legacy history or calendar events
-    // so total clean days starts at 0 + the days from chosenDate
-    await StorageService.clearHistory();
-    await StorageService.clearCalendarEvents();
-    setHistory([]);
-    setCalendarEvents([]);
+    await StorageService.clearAllData();
 
-    const iso = chosenDate.toISOString();
-    await StorageService.setTimerState({ startDate: iso });
-    await StorageService.setCalendarStartDate(iso);
+    const rounds = await StorageService.getRounds();
+    // Create first round anchored to the chosen date
+    const round: Round = {
+      id: generateUUID(),
+      roundNumber: rounds.length + 1,
+      startDate: chosenDate.toISOString(),
+      endDate: null,
+      relapses: [],
+    };
+    const allRounds = [...rounds, round];
+    // Persist via startNewRound-equivalent inline to use chosen date
+    const { default: AsyncStorage } = await import('@react-native-async-storage/async-storage');
+    await AsyncStorage.setItem('@rounds', JSON.stringify(allRounds));
+
     await StorageService.markOnboardingComplete();
-    setStartDate(chosenDate);
-    setCalendarStartDate(chosenDate);
-    setCelebrationShown(false);
-  }, [startDate]);
+    setCurrentRound(round);
+  }, []);
 
-  const resetTimer = useCallback(
-    async (trigger?: string) => {
-      if (!startDate) return;
+  const logRelapse = useCallback(async () => {
+    if (!currentRound) return;
+    const countToday = getRelapseCountToday(currentRound.relapses);
+    const event = {
+      timestamp: new Date().toISOString(),
+      relapseCountThatDay: countToday + 1,
+    };
+    await StorageService.saveRelapse(currentRound.id, event);
+    setCurrentRound((prev) =>
+      prev ? { ...prev, relapses: [...prev.relapses, event] } : prev
+    );
+  }, [currentRound]);
 
-      // Calculate days before reset
-      const now = new Date();
-      const diffMs = now.getTime() - startDate.getTime();
-      const streakDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const finishRound = useCallback(async () => {
+    if (!currentRound) return;
+    const endDate = new Date().toISOString();
+    await StorageService.completeRound(currentRound.id, endDate);
+    setCurrentRound((prev) => prev ? { ...prev, endDate } : prev);
+  }, [currentRound]);
 
-      // Create history entry
-      const entry: ResetEntry = {
-        id: generateUUID(),
-        resetDate: now.toISOString(),
-        trigger: trigger?.trim().slice(0, 50) || '',
-        streakDays,
-      };
+  const startNewRound = useCallback(async () => {
+    const round = await StorageService.startNewRound();
+    setCurrentRound(round);
+  }, []);
 
-      // Record relapse on the calendar
-      const todayStr = toLocalDateStr(now);
-      const relapseEvent: CalendarEvent = { date: todayStr, type: 'relapsed' };
-      await StorageService.addCalendarEvent(relapseEvent);
-      setCalendarEvents((prev) =>
-        prev.some((e) => e.date === todayStr) ? prev : [...prev, relapseEvent]
-      );
-
-      await StorageService.addHistoryEntry(entry);
-
-      // Reset timer to now
-      const nowISO = now.toISOString();
-      await StorageService.setTimerState({ startDate: nowISO });
-
-      // Update state
-      setStartDate(now);
-      setHistory((prev) => [entry, ...prev]);
-      setCelebrationShown(false);
-    },
-    [startDate]
-  );
-
-  const markCelebrationShown = useCallback(async () => {
-    if (!startDate) return;
-    await StorageService.markCelebrationShown(startDate.toISOString());
-    setCelebrationShown(true);
-  }, [startDate]);
+  const saveCheckIn = useCallback(async (entry: CheckInEntry) => {
+    await StorageService.saveCheckIn(entry);
+    setCheckIns((prev) => {
+      const idx = prev.findIndex((c) => c.date === entry.date);
+      if (idx !== -1) {
+        const updated = [...prev];
+        updated[idx] = entry;
+        return updated;
+      }
+      return [...prev, entry];
+    });
+  }, []);
 
   // Dev mode actions
-  const enterDevMode = useCallback(
-    async (devDate: Date) => {
-      // Save real start date for restoration
-      setRealStartDate(startDate);
-      setDevStartDate(devDate);
-      setIsDevMode(true);
-
-      // Persist dev mode state
-      await DevStorageService.setDevMode({
-        isActive: true,
-        devStartDate: devDate.toISOString(),
-        activatedAt: new Date().toISOString(),
-      });
-    },
-    [startDate]
-  );
+  const enterDevMode = useCallback(async (devDate: Date) => {
+    setRealRound(currentRound);
+    setDevStartDateState(devDate);
+    setIsDevMode(true);
+    await DevStorageService.setDevMode({
+      isActive: true,
+      devStartDate: devDate.toISOString(),
+      activatedAt: new Date().toISOString(),
+    });
+  }, [currentRound]);
 
   const exitDevMode = useCallback(async () => {
-    // Restore real start date
-    if (realStartDate) {
-      setStartDate(realStartDate);
-    }
-
-    // Clear dev mode state
+    setCurrentRound(realRound);
     setIsDevMode(false);
-    setDevStartDate(null);
-    setRealStartDate(null);
-
-    // Clear from storage
+    setDevStartDateState(null);
+    setRealRound(null);
     await DevStorageService.clearDevMode();
-  }, [realStartDate]);
+  }, [realRound]);
 
-  const setDevStartDateAction = useCallback(async (date: Date) => {
-    setDevStartDate(date);
-
-    // Update storage
+  const setDevStartDate = useCallback(async (date: Date) => {
+    setDevStartDateState(date);
     await DevStorageService.setDevMode({
       isActive: true,
       devStartDate: date.toISOString(),
@@ -217,29 +190,30 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const totalCleanDays = computeTotalCleanDays(history, countdown.days);
-
   return (
     <TimerContext.Provider
       value={{
-        startDate,
-        storedStartDate,
-        calendarStartDate,
-        countdown,
-        history,
-        calendarEvents,
-        totalCleanDays,
+        currentRound,
+        roundNumber: currentRound?.roundNumber ?? 1,
+        dayInRound,
+        daysSinceLastRelapse,
+        lastRelapseTimestamp,
+        relapseCountToday,
+        checkIns,
+        todayCheckIn,
         isLoading,
-        celebrationShown,
         isDevMode,
         devStartDate,
         completeOnboarding,
-        resetTimer,
-        markCelebrationShown,
+        logRelapse,
+        finishRound,
+        startNewRound,
+        saveCheckIn,
         enterDevMode,
         exitDevMode,
-        setDevStartDate: setDevStartDateAction,
-      }}>
+        setDevStartDate,
+      }}
+    >
       {children}
     </TimerContext.Provider>
   );

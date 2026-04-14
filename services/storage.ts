@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { TimerState, ResetEntry, CalendarEvent } from '@/types/timer';
+import type { TimerState, ResetEntry, CalendarEvent, Round, RelapseEvent, CheckInEntry } from '@/types/timer';
 
 const KEYS = {
   TIMER_STATE: '@timer_state',
@@ -8,6 +8,8 @@ const KEYS = {
   CALENDAR_EVENTS: '@calendar_events',
   CALENDAR_START_DATE: '@calendar_start_date',
   ONBOARDING_COMPLETE: '@onboarding_complete',
+  ROUNDS: '@rounds',
+  CHECK_INS: '@check_ins',
 } as const;
 
 const MAX_HISTORY_ENTRIES = 100;
@@ -131,6 +133,59 @@ export const StorageService = {
     await AsyncStorage.removeItem(KEYS.CALENDAR_EVENTS);
   },
 
+  // Rounds
+  async getRounds(): Promise<Round[]> {
+    const data = await AsyncStorage.getItem(KEYS.ROUNDS);
+    return data ? JSON.parse(data) : [];
+  },
+
+  async startNewRound(): Promise<Round> {
+    const rounds = await this.getRounds();
+    const round: Round = {
+      id: generateUUID(),
+      roundNumber: rounds.length + 1,
+      startDate: new Date().toISOString(),
+      endDate: null,
+      relapses: [],
+    };
+    rounds.push(round);
+    await AsyncStorage.setItem(KEYS.ROUNDS, JSON.stringify(rounds));
+    return round;
+  },
+
+  async saveRelapse(roundId: string, event: RelapseEvent): Promise<void> {
+    const rounds = await this.getRounds();
+    const idx = rounds.findIndex((r) => r.id === roundId);
+    if (idx === -1) return;
+    rounds[idx].relapses.push(event);
+    await AsyncStorage.setItem(KEYS.ROUNDS, JSON.stringify(rounds));
+  },
+
+  async completeRound(roundId: string, endDate: string): Promise<void> {
+    const rounds = await this.getRounds();
+    const idx = rounds.findIndex((r) => r.id === roundId);
+    if (idx === -1) return;
+    rounds[idx].endDate = endDate;
+    await AsyncStorage.setItem(KEYS.ROUNDS, JSON.stringify(rounds));
+  },
+
+  // Check-ins
+  async getCheckIns(): Promise<CheckInEntry[]> {
+    const data = await AsyncStorage.getItem(KEYS.CHECK_INS);
+    return data ? JSON.parse(data) : [];
+  },
+
+  async saveCheckIn(entry: CheckInEntry): Promise<void> {
+    const checkIns = await this.getCheckIns();
+    const idx = checkIns.findIndex((c) => c.date === entry.date);
+    if (idx !== -1) {
+      checkIns[idx] = entry;
+    } else {
+      checkIns.push(entry);
+    }
+    await AsyncStorage.setItem(KEYS.CHECK_INS, JSON.stringify(checkIns));
+  },
+
   // Clear all data (for testing/debug)
   async clearAllData(): Promise<void> {
     await AsyncStorage.multiRemove([
@@ -140,6 +195,8 @@ export const StorageService = {
       KEYS.CALENDAR_EVENTS,
       KEYS.CALENDAR_START_DATE,
       KEYS.ONBOARDING_COMPLETE,
+      KEYS.ROUNDS,
+      KEYS.CHECK_INS,
     ]);
   },
 };

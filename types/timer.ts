@@ -1,12 +1,20 @@
-export interface TimerState {
-  startDate: string; // ISO timestamp when current streak began
+export interface RelapseEvent {
+  timestamp: string; // ISO timestamp
+  relapseCountThatDay: number; // 1 for first relapse of day, 2 for second, etc.
 }
 
-export interface ResetEntry {
-  id: string; // UUID
-  resetDate: string; // ISO timestamp
-  trigger: string; // Brief note (max 50 chars)
-  streakDays: number; // Days achieved before reset
+export interface Round {
+  id: string;
+  roundNumber: number;
+  startDate: string; // ISO timestamp
+  endDate: string | null; // ISO timestamp when round completed, null if active
+  relapses: RelapseEvent[];
+}
+
+export interface CheckInEntry {
+  date: string; // 'YYYY-MM-DD'
+  mood: 'struggling' | 'neutral' | 'strong';
+  note?: string;
 }
 
 export interface CountdownValue {
