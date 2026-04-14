@@ -34,7 +34,7 @@ export function useMultiTap(
 
       if (recent.length >= tapsRequired) {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        callback();
+        setTimeout(callback, 0);
         return [];
       }
 

@@ -12,10 +12,12 @@ export default function DevMenuModal() {
   const {
     isDevMode,
     devStartDate,
-    startDate,
+    currentRound,
+    dayInRound,
     enterDevMode,
     exitDevMode,
     setDevStartDate,
+    devSeedRelapses,
   } = useTimer();
 
   const backgroundColor = useThemeColor({}, 'background');
@@ -79,7 +81,10 @@ export default function DevMenuModal() {
               Status: {isDevMode ? 'Active' : 'Inactive'}
             </ThemedText>
             <ThemedText style={[styles.statusText, { color: secondaryColor }]}>
-              Real start: {formatDate(startDate)}
+              Round start: {formatDate(currentRound ? new Date(currentRound.startDate) : null)}
+            </ThemedText>
+            <ThemedText style={[styles.statusText, { color: secondaryColor }]}>
+              Current day: {dayInRound} of 90
             </ThemedText>
             {isDevMode && (
               <ThemedText style={[styles.statusText, { color: devBannerColor }]}>
@@ -120,6 +125,28 @@ export default function DevMenuModal() {
                 </Pressable>
               ))}
             </View>
+          </View>
+
+          <View style={styles.actionsSection}>
+            <ThemedText style={[styles.sectionTitle, { color: secondaryColor }]}>
+              Test Actions
+            </ThemedText>
+            <Pressable
+              style={[styles.actionButton, { backgroundColor, borderColor }]}
+              onPress={async () => {
+                await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                await devSeedRelapses();
+              }}>
+              <ThemedText style={styles.presetLabel}>Seed 3 relapses</ThemedText>
+            </Pressable>
+            <Pressable
+              style={[styles.actionButton, { backgroundColor, borderColor }]}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.replace('/round-summary');
+              }}>
+              <ThemedText style={styles.presetLabel}>View Round Summary</ThemedText>
+            </Pressable>
           </View>
 
           <View style={styles.infoSection}>
@@ -239,6 +266,17 @@ const styles = StyleSheet.create({
   milestoneIndicator: {
     fontSize: 12,
     marginTop: 2,
+  },
+  actionsSection: {
+    marginBottom: 24,
+    gap: 10,
+  },
+  actionButton: {
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    alignItems: 'center',
   },
   infoSection: {
     marginBottom: 24,

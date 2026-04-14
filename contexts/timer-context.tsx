@@ -40,6 +40,7 @@ interface TimerContextValue {
   enterDevMode: (devDate: Date) => Promise<void>;
   exitDevMode: () => Promise<void>;
   setDevStartDate: (date: Date) => Promise<void>;
+  devSeedRelapses: () => Promise<void>;
 }
 
 const TimerContext = createContext<TimerContextValue | null>(null);
@@ -185,6 +186,23 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     await DevStorageService.clearDevMode();
   }, [realRound]);
 
+  const devSeedRelapses = useCallback(async () => {
+    if (!currentRound) return;
+    const start = new Date(currentRound.startDate);
+    const testRelapses = [5, 12, 35].map((daysOffset, i) => {
+      const d = new Date(start);
+      d.setDate(d.getDate() + daysOffset);
+      d.setSeconds(d.getSeconds() + Math.floor(Math.random() * 3600)); // unique timestamp
+      return { timestamp: d.toISOString(), relapseCountThatDay: i + 1 };
+    });
+    for (const event of testRelapses) {
+      await StorageService.saveRelapse(currentRound.id, event);
+    }
+    setCurrentRound((prev) =>
+      prev ? { ...prev, relapses: [...prev.relapses, ...testRelapses] } : prev
+    );
+  }, [currentRound]);
+
   const setDevStartDate = useCallback(async (date: Date) => {
     setDevStartDateState(date);
     await DevStorageService.setDevMode({
@@ -217,6 +235,7 @@ export function TimerProvider({ children }: { children: ReactNode }) {
         enterDevMode,
         exitDevMode,
         setDevStartDate,
+        devSeedRelapses,
       }}
     >
       {children}
