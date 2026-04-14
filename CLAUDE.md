@@ -39,7 +39,7 @@ This is an Expo SDK 54 React Native app using:
 - `constants/theme.ts` - Color palette and font definitions for light/dark modes
 - `contexts/timer-context.tsx` - Central app state; `allRounds` and `currentRound` are kept in sync — mutations (`logRelapse`, `finishRound`, `devSeedRelapses`) update both. Exposes `useTimer()`
 - `hooks/` - Custom hooks including `useColorScheme` and `useThemeColor`
-- `services/storage.ts` - AsyncStorage persistence layer (`StorageService`)
+- `services/storage.ts` - AsyncStorage persistence layer (`StorageService`); `createRoundWithDate(startDate)` used by onboarding to anchor a round to a chosen date
 - `services/dev-storage.ts` - Dev-mode storage helpers and presets
 - `utils/onboarding.ts` - Pure helpers: `isValidStartDate`, `isPastDate`, `shouldSkipOnboarding`, `MAX_DAYS_AGO`
 - `utils/calendar.ts` - Calendar computation helpers
@@ -52,7 +52,7 @@ This is an Expo SDK 54 React Native app using:
 ### Theming Pattern
 
 The app uses a consistent theming approach:
-1. `Colors` object in `constants/theme.ts` defines light/dark color palettes
+1. `Colors` object in `constants/theme.ts` defines light/dark color palettes; `badgeText` token for text on tinted badge backgrounds
 2. `useColorScheme()` hook detects system theme preference
 3. `useThemeColor()` hook resolves colors based on current theme
 4. `ThemedText` and `ThemedView` components automatically apply theme colors

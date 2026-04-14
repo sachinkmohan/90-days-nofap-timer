@@ -6,6 +6,36 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [Unreleased] — Post-Feature-1 Code Review Fixes
+
+### Added
+- `StorageService.createRoundWithDate(startDate)` — extracted from `completeOnboarding` so onboarding can anchor a round to a user-chosen date without bypassing `StorageService`
+- `badgeText` theme token in `constants/theme.ts` — replaces hardcoded `#fff` on badge text in Insights and clean-day cells in CalendarGrid
+- `isSubmitting` guard in `app/relapse-modal.tsx` — disables the "Log relapse" button during the async call to prevent double-logging on rapid taps
+- `isStartingRound` ref guard in `app/round-summary.tsx` — prevents `finishRound` + `startNewRound` from being called twice on rapid taps
+- `accessibilityRole="button"` and `accessibilityLabel` on the "Log a relapse →" Pressable in `RelapseCard`
+
+### Changed
+- `completeOnboarding` in `timer-context.tsx` now uses `StorageService.createRoundWithDate` instead of a raw `AsyncStorage.setItem('@rounds', ...)` call
+- `devSeedRelapses` — `relapseCountThatDay` corrected from loop index (`i+1`) to `1` for each seeded event; each seeded day has exactly one relapse
+- `getDayInRound` — clamped to a minimum of 1 so a future `startDate` never returns 0 or a negative value
+- `CalendarGrid` — precomputes a `dateStr → count` map from `relapses` before the render loop instead of calling `getRelapsesForDay` per cell (O(relapses) vs O(days × relapses))
+- `use-multi-tap` — moved `Haptics.notificationAsync` and `setTimeout(callback)` out of the `setTapTimes` state updater so side effects don't fire twice in React Strict Mode
+- `app/(tabs)/index.tsx` — consolidated two separate `useEffect` hooks (redirect + flag reset) into one using a ref to track the previous round ID
+- `router.dismiss()` + `router.push('/round-summary')` in dev menu replaced with atomic `router.dismissTo('/round-summary')`
+- `round-summary.tsx` — returns a redirect to `/(tabs)` via `useEffect` instead of bare `null` when `currentRound` is missing
+- `saveRelapse` and `completeRound` in `StorageService` now emit `console.warn` when the roundId is not found instead of silently returning
+
+### Fixed
+- `devSeedRelapses` was marking seeded relapses with incrementing `relapseCountThatDay` (1, 2, 3) when each is the first relapse on its respective day
+
+### Tests
+- 93 tests across 9 suites (up from 89)
+- `rounds.test.ts` — added case: `getDayInRound` returns 1 when `startDate` is in the future
+- `storage-rounds.test.ts` — 3 new cases for `StorageService.createRoundWithDate`: correct `startDate`, persistence, and `roundNumber` increment
+
+---
+
 ## [Unreleased] — Feature 1: Round Model + Home Screen Redesign
 
 ### Added
