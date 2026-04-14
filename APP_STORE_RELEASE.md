@@ -80,19 +80,19 @@ Work through these in order. Each one builds on the previous.
 - [x] Add `saveCheckIn(entry)` action
 
 ### Home Screen Redesign (`app/(tabs)/index.tsx`)
-- [ ] Remove `DailyMantraBanner`, `StreakStats`, standalone `ResetButton`
-- [ ] Hero number: "Day [X] of 90" using `dayInRound`
-- [ ] Update `ProgressBar` to use `dayInRound / 90` as progress value
-- [ ] **Relapse card** (new component `components/timer/relapse-card.tsx`):
+- [x] Remove `DailyMantraBanner`, `StreakStats`, standalone `ResetButton`
+- [x] Hero number: "Day [X] of 90" using `dayInRound`
+- [x] Update `ProgressBar` to use `dayInRound / 90` as progress value
+- [x] **Relapse card** (new component `components/timer/relapse-card.tsx`):
   - Shows "Last relapse [X hours ago]" when under 24h using `formatDistanceToNow`
   - Shows "[X] days since last relapse" when over 24h using `daysSinceLastRelapse`
   - "Log a relapse →" tappable action inside the card
   - If no relapses yet in round: "No relapses this round 💪"
-- [ ] **Check-in card** (new component `components/timer/checkin-card.tsx`):
+- [x] **Check-in card** (new component `components/timer/checkin-card.tsx`):
   - Shows "Check in for today →" if `todayCheckIn` is null
   - Shows mood emoji + "Checked in" if already done today
   - Tapping opens check-in modal
-- [ ] Update calendar to show red dot + relapse count number on relapse days
+- [x] Update calendar to show red dot + relapse count number on relapse days
 
 ### Relapse Flow (`app/reset-modal.tsx`)
 - [ ] Rename/repurpose to `app/relapse-modal.tsx`

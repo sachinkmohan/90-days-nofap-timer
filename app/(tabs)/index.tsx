@@ -1,54 +1,40 @@
-import { CalendarGrid } from "@/components/calendar/calendar-grid";
-import { StreakStats } from "@/components/calendar/streak-stats";
-import { DailyMantraBanner } from "@/components/daily-mantra/daily-mantra-banner";
-import { ProgressBar } from "@/components/timer/progress-bar";
-import { ResetButton } from "@/components/timer/reset-button";
-import { TimerDisplay } from "@/components/timer/timer-display";
-import { useTimer } from "@/contexts/timer-context";
-import { useThemeColor } from "@/hooks/use-theme-color";
-import { useRouter } from "expo-router";
-import { useEffect } from "react";
-import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { CalendarGrid } from '@/components/calendar/calendar-grid';
+import { CheckInCard } from '@/components/timer/checkin-card';
+import { ProgressBar } from '@/components/timer/progress-bar';
+import { RelapseCard } from '@/components/timer/relapse-card';
+import { useTimer } from '@/contexts/timer-context';
+import { useThemeColor } from '@/hooks/use-theme-color';
+import { useRouter } from 'expo-router';
+import { useEffect } from 'react';
+import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { ThemedText } from '@/components/themed-text';
 
 export default function TimerScreen() {
   const router = useRouter();
-  const backgroundColor = useThemeColor({}, "background");
+  const backgroundColor = useThemeColor({}, 'background');
   const {
-    countdown,
+    currentRound,
+    dayInRound,
+    daysSinceLastRelapse,
+    lastRelapseTimestamp,
+    todayCheckIn,
     isLoading,
-    celebrationShown,
-    markCelebrationShown,
-    startDate,
-    calendarStartDate,
-    calendarEvents,
-    totalCleanDays,
-    history,
   } = useTimer();
 
-  // Redirect to onboarding if not yet completed
+  // Redirect to onboarding if not yet started
   useEffect(() => {
-    if (!isLoading && !startDate) {
-      router.replace("/onboarding");
+    if (!isLoading && !currentRound) {
+      router.replace('/onboarding');
     }
-  }, [isLoading, startDate, router]);
+  }, [isLoading, currentRound, router]);
 
-  // Show celebration modal when 90 days is reached for the first time
-  useEffect(() => {
-    if (countdown.hasReached90Days && !celebrationShown && !isLoading) {
-      markCelebrationShown();
-      router.push("/celebration-modal");
-    }
-  }, [
-    countdown.hasReached90Days,
-    celebrationShown,
-    isLoading,
-    markCelebrationShown,
-    router,
-  ]);
+  const handleLogRelapse = () => {
+    router.push('/relapse-modal');
+  };
 
-  const handleReset = () => {
-    router.push("/reset-modal");
+  const handleCheckIn = () => {
+    router.push('/check-in-modal');
   };
 
   if (isLoading) {
@@ -61,42 +47,37 @@ export default function TimerScreen() {
     );
   }
 
-  if (!startDate) {
+  if (!currentRound) {
     return null;
   }
 
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor }]}
-      edges={["top"]}
-    >
-      <DailyMantraBanner streakDays={countdown.days} />
+    <SafeAreaView style={[styles.container, { backgroundColor }]} edges={['top']}>
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <StreakStats
-          currentStreakDays={countdown.days}
-          totalCleanDays={totalCleanDays}
-          resetCount={history.length}
-        />
-        {calendarStartDate && (
-          <CalendarGrid
-            startDate={calendarStartDate}
-            calendarEvents={calendarEvents}
-          />
-        )}
-        <View style={styles.timerSection}>
-          <TimerDisplay countdown={countdown} />
-          <ProgressBar
-            progress={countdown.progress}
-            currentDays={countdown.days}
-            hasReached90Days={countdown.hasReached90Days}
-          />
+        <View style={styles.heroSection}>
+          <ThemedText style={styles.heroNumber}>Day {dayInRound}</ThemedText>
+          <ThemedText style={styles.heroSub}>of 90</ThemedText>
         </View>
+
+        <ProgressBar dayInRound={dayInRound} />
+
+        <RelapseCard
+          lastRelapseTimestamp={lastRelapseTimestamp}
+          daysSinceLastRelapse={daysSinceLastRelapse}
+          onLogRelapse={handleLogRelapse}
+        />
+
+        <CheckInCard todayCheckIn={todayCheckIn} onCheckIn={handleCheckIn} />
+
+        <CalendarGrid
+          startDate={new Date(currentRound.startDate)}
+          relapses={currentRound.relapses}
+        />
       </ScrollView>
-      <ResetButton onReset={handleReset} />
     </SafeAreaView>
   );
 }
@@ -107,18 +88,29 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   scroll: {
     flex: 1,
   },
   scrollContent: {
-    flexGrow: 1,
+    paddingBottom: 32,
   },
-  timerSection: {
-    flex: 1,
-    justifyContent: "center",
-    paddingBottom: 16,
+  heroSection: {
+    alignItems: 'center',
+    paddingTop: 32,
+    paddingBottom: 8,
+  },
+  heroNumber: {
+    fontSize: 72,
+    fontWeight: '700',
+    lineHeight: 80,
+    fontVariant: ['tabular-nums'],
+  },
+  heroSub: {
+    fontSize: 20,
+    opacity: 0.5,
+    marginTop: -4,
   },
 });

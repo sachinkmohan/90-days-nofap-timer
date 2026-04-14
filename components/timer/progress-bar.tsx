@@ -3,19 +3,16 @@ import { useThemeColor } from "@/hooks/use-theme-color";
 import { StyleSheet, View } from "react-native";
 
 interface ProgressBarProps {
-  progress: number; // 0-100
-  currentDays: number;
-  hasReached90Days: boolean;
+  dayInRound: number; // 1-90
 }
 
 const MILESTONES = [7, 14, 30, 60, 90];
 const MILESTONE_POSITIONS = MILESTONES.map((day) => (day / 90) * 100);
 
-export function ProgressBar({
-  progress,
-  currentDays,
-  hasReached90Days,
-}: ProgressBarProps) {
+export function ProgressBar({ dayInRound }: ProgressBarProps) {
+  const progress = (dayInRound / 90) * 100;
+  const currentDays = dayInRound;
+  const hasReached90Days = dayInRound >= 90;
   const trackColor = useThemeColor({}, "progressTrack");
   const fillColor = useThemeColor({}, "progressFill");
   const celebrationColor = useThemeColor({}, "celebration");

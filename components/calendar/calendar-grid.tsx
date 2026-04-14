@@ -1,35 +1,45 @@
-import { ThemedText } from "@/components/themed-text";
-import { useThemeColor } from "@/hooks/use-theme-color";
-import type { CalendarEvent } from "@/types/timer";
-import { getCalendarPage, getDayStatus } from "@/utils/calendar";
-import { useRef, useState } from "react";
+import { ThemedText } from '@/components/themed-text';
+import { useThemeColor } from '@/hooks/use-theme-color';
+import type { RelapseEvent } from '@/types/timer';
+import { getCalendarPage } from '@/utils/calendar';
+import { getRelapsesForDay } from '@/utils/relapse-card';
+import { useRef, useState } from 'react';
 import {
   ScrollView,
   StyleSheet,
   useWindowDimensions,
   View,
-} from "react-native";
+} from 'react-native';
 
 const DAYS_PER_PAGE = 30;
 const COLS = 10;
 
-interface CalendarGridProps {
-  startDate: Date;
-  calendarEvents: CalendarEvent[];
+function toLocalDateStr(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
 }
 
-export function CalendarGrid({ startDate, calendarEvents }: CalendarGridProps) {
+interface CalendarGridProps {
+  startDate: Date;
+  relapses: RelapseEvent[];
+}
+
+export function CalendarGrid({ startDate, relapses }: CalendarGridProps) {
   const { width } = useWindowDimensions();
   const scrollRef = useRef<ScrollView>(null);
 
-  const tintColor = useThemeColor({}, "tint");
-  const secondaryColor = useThemeColor({}, "timerSecondary");
-  const trackColor = useThemeColor({}, "progressTrack");
-  const cleanColor = useThemeColor({}, "progressFill");
-  const relapsedColor = useThemeColor({}, "resetButtonPressed");
+  const tintColor = useThemeColor({}, 'tint');
+  const secondaryColor = useThemeColor({}, 'timerSecondary');
+  const trackColor = useThemeColor({}, 'progressTrack');
+  const cleanColor = useThemeColor({}, 'progressFill');
+  const relapsedColor = useThemeColor({}, 'resetButtonPressed');
 
   const initialPage = getCalendarPage(startDate);
   const [activePage, setActivePage] = useState(initialPage);
+
+  const todayStr = toLocalDateStr(new Date());
 
   const PADDING = 16;
   const GAP = 4;
@@ -66,12 +76,15 @@ export function CalendarGrid({ startDate, calendarEvents }: CalendarGridProps) {
               <View style={styles.grid}>
                 {Array.from({ length: DAYS_PER_PAGE }, (_, i) => {
                   const dayIndex = startDayIndex + i;
-                  const status = getDayStatus(
-                    startDate,
-                    dayIndex,
-                    calendarEvents,
-                  );
+                  const cellDate = new Date(startDate);
+                  cellDate.setDate(cellDate.getDate() + dayIndex);
+                  const dayStr = toLocalDateStr(cellDate);
                   const dayNumber = dayIndex + 1;
+
+                  const isFuture = dayStr > todayStr;
+                  const isToday = dayStr === todayStr;
+                  const relapseCount = isFuture ? 0 : getRelapsesForDay(relapses, dayStr);
+                  const isRelapsed = relapseCount > 0;
 
                   return (
                     <View
@@ -85,39 +98,32 @@ export function CalendarGrid({ startDate, calendarEvents }: CalendarGridProps) {
                         style={[
                           styles.cell,
                           { width: cellInner, height: cellInner },
-                          status === "clean" && { backgroundColor: cleanColor },
-                          status === "today" && {
-                            borderWidth: 2,
-                            borderColor: tintColor,
-                          },
-                          (status === "future" || status === "relapsed") && {
-                            backgroundColor: trackColor,
-                          },
+                          !isFuture && !isRelapsed && !isToday && { backgroundColor: cleanColor },
+                          isToday && { borderWidth: 2, borderColor: tintColor },
+                          (isFuture || isRelapsed) && { backgroundColor: trackColor },
                         ]}
                       >
                         <ThemedText
                           style={[
                             styles.dayNumber,
-                            status === "clean" && { color: "#fff" },
-                            status === "today" && {
-                              color: tintColor,
-                              fontWeight: "600",
-                            },
-                            status === "future" && {
-                              color: secondaryColor,
-                              opacity: 0.35,
-                            },
+                            !isFuture && !isRelapsed && !isToday && { color: '#fff' },
+                            isToday && { color: tintColor, fontWeight: '600' },
+                            isFuture && { color: secondaryColor, opacity: 0.35 },
                           ]}
                         >
                           {dayNumber}
                         </ThemedText>
-                        {status === "relapsed" && (
-                          <View
-                            style={[
-                              styles.relapseDot,
-                              { backgroundColor: relapsedColor },
-                            ]}
-                          />
+                        {isRelapsed && (
+                          <View style={styles.relapseBadgeRow}>
+                            <View
+                              style={[styles.relapseDot, { backgroundColor: relapsedColor }]}
+                            />
+                            {relapseCount > 1 && (
+                              <ThemedText style={[styles.relapseCount, { color: relapsedColor }]}>
+                                {relapseCount}
+                              </ThemedText>
+                            )}
+                          </View>
                         )}
                       </View>
                     </View>
@@ -153,41 +159,51 @@ const styles = StyleSheet.create({
   },
   pageLabel: {
     fontSize: 11,
-    fontWeight: "500",
-    textAlign: "center",
+    fontWeight: '500',
+    textAlign: 'center',
     marginBottom: 8,
-    textTransform: "uppercase",
+    textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
   },
   cellWrapper: {
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   cell: {
     borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   dayNumber: {
     fontSize: 9,
-    fontWeight: "400",
-    fontVariant: ["tabular-nums"],
+    fontWeight: '400',
+    fontVariant: ['tabular-nums'],
   },
-  relapseDot: {
+  relapseBadgeRow: {
     position: 'absolute',
     bottom: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 1,
+  },
+  relapseDot: {
     width: 4,
     height: 4,
     borderRadius: 2,
   },
+  relapseCount: {
+    fontSize: 6,
+    fontWeight: '600',
+    fontVariant: ['tabular-nums'],
+  },
   indicators: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
     gap: 6,
     marginTop: 10,
   },
