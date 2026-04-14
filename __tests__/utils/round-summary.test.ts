@@ -1,4 +1,4 @@
-import { getLongestCleanStreak, getRoundComparison } from '@/utils/round-summary';
+import { getLongestCleanStreak, getRoundComparison, getRoundDuration } from '@/utils/round-summary';
 import type { RelapseEvent, Round } from '@/types/timer';
 
 // Helpers
@@ -70,5 +70,23 @@ describe('getRoundComparison', () => {
   it('always compares the last two rounds', () => {
     const result = getRoundComparison([makeRound(1, 10), makeRound(2, 8), makeRound(3, 3)]);
     expect(result).toEqual({ prevRelapses: 8, currentRelapses: 3 });
+  });
+});
+
+describe('getRoundDuration', () => {
+  it('returns 1 when start and end are the same day', () => {
+    expect(getRoundDuration('2026-01-01T00:00:00Z', '2026-01-01T23:59:00Z')).toBe(1);
+  });
+
+  it('returns 90 for a full 90-day round', () => {
+    expect(getRoundDuration('2026-01-01T00:00:00Z', '2026-04-01T00:00:00Z')).toBe(91);
+  });
+
+  it('uses today when endDate is null', () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2026-04-14T12:00:00Z'));
+    // Jan 14 → Apr 14 = 90 days difference → duration = 91 (Jan 14 is day 1)
+    expect(getRoundDuration('2026-01-14T00:00:00Z', null)).toBe(91);
+    jest.useRealTimers();
   });
 });

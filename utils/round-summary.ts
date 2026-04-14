@@ -31,6 +31,11 @@ export function getLongestCleanStreak(
   return maxStreak;
 }
 
+export function getRoundDuration(startDate: string, endDate: string | null): number {
+  const end = endDate ? new Date(endDate) : new Date();
+  return differenceInDays(end, new Date(startDate)) + 1;
+}
+
 export function getRoundComparison(
   rounds: Round[]
 ): { prevRelapses: number; currentRelapses: number } | null {

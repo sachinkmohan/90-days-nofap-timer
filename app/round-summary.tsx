@@ -73,6 +73,13 @@ export default function RoundSummaryScreen() {
             Start Round {currentRound.roundNumber + 1}
           </ThemedText>
         </Pressable>
+
+        <Pressable
+          onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)')}
+          style={styles.laterRow}
+        >
+          <ThemedText style={[styles.laterText, { color: secondary }]}>Maybe later</ThemedText>
+        </Pressable>
       </View>
     </SafeAreaView>
   );
@@ -135,5 +142,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#fff',
+  },
+  laterRow: {
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  laterText: {
+    fontSize: 14,
   },
 });
