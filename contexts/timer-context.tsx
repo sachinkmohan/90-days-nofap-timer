@@ -8,10 +8,13 @@ import {
 } from 'react';
 import { StorageService } from '@/services/storage';
 import { DevStorageService } from '@/services/dev-storage';
+import { NotificationService } from '@/services/notification-service';
 import { getDayInRound, getDaysSinceLastRelapse, getRelapseCountToday } from '@/utils/rounds';
+import { getMilestoneReached } from '@/utils/notifications';
 import { shouldSkipOnboarding } from '@/utils/onboarding';
 import { isSameDay } from 'date-fns';
 import type { Round, CheckInEntry } from '@/types/timer';
+import type { NotificationPreset } from '@/utils/notifications';
 
 interface TimerContextValue {
   // Round state
@@ -31,7 +34,7 @@ interface TimerContextValue {
   isDevMode: boolean;
   devStartDate: Date | null;
   // Actions
-  completeOnboarding: (chosenDate: Date) => Promise<void>;
+  completeOnboarding: (chosenDate: Date, notificationPreset?: NotificationPreset) => Promise<void>;
   logRelapse: () => Promise<void>;
   finishRound: () => Promise<void>;
   startNewRound: () => Promise<void>;
@@ -91,6 +94,27 @@ export function TimerProvider({ children }: { children: ReactNode }) {
       const storedCheckIns = await StorageService.getCheckIns();
       setCheckIns(storedCheckIns);
 
+      // Check for milestone notifications on app open
+      if (activeRound) {
+        const relapses = activeRound.relapses;
+        const days = getDaysSinceLastRelapse(relapses);
+        if (days !== null) {
+          const milestone = getMilestoneReached(days);
+          if (milestone) {
+            const notified = await StorageService.getNotifiedMilestones(activeRound.id);
+            if (!notified.includes(milestone)) {
+              await NotificationService.fireMilestoneNotification(milestone);
+              await StorageService.saveNotifiedMilestone(activeRound.id, milestone);
+            }
+          }
+        }
+
+        const preset = await StorageService.getNotificationPreset();
+        if (preset) {
+          await NotificationService.scheduleDailyNotifications(preset, activeRound.startDate);
+        }
+      }
+
       const devModeState = await DevStorageService.getDevMode();
       if (devModeState?.isActive) {
         setIsDevMode(true);
@@ -104,7 +128,7 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     initialize();
   }, []);
 
-  const completeOnboarding = useCallback(async (chosenDate: Date) => {
+  const completeOnboarding = useCallback(async (chosenDate: Date, notificationPreset?: NotificationPreset) => {
     if (await shouldSkipOnboarding(null, StorageService.hasCompletedOnboarding)) return;
 
     await StorageService.clearAllData();
@@ -113,6 +137,11 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     await StorageService.markOnboardingComplete();
     setAllRounds([round]);
     setCurrentRound(round);
+
+    if (notificationPreset) {
+      await StorageService.saveNotificationPreset(notificationPreset);
+      await NotificationService.scheduleDailyNotifications(notificationPreset, round.startDate);
+    }
   }, []);
 
   const logRelapse = useCallback(async () => {
@@ -151,6 +180,11 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     const round = await StorageService.startNewRound();
     setAllRounds((prev) => [...prev, round]);
     setCurrentRound(round);
+
+    const preset = await StorageService.getNotificationPreset();
+    if (preset) {
+      await NotificationService.scheduleDailyNotifications(preset, round.startDate);
+    }
   }, []);
 
   const saveCheckIn = useCallback(async (entry: CheckInEntry) => {

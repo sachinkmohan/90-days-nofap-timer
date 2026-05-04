@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { TimerState, ResetEntry, CalendarEvent, Round, RelapseEvent, CheckInEntry } from '@/types/timer';
+import type { NotificationPreset } from '@/utils/notifications';
 
 const KEYS = {
   TIMER_STATE: '@timer_state',
@@ -10,6 +11,8 @@ const KEYS = {
   ONBOARDING_COMPLETE: '@onboarding_complete',
   ROUNDS: '@rounds',
   CHECK_INS: '@check_ins',
+  NOTIFICATION_PRESET: '@notification_preset',
+  NOTIFIED_MILESTONES: '@notified_milestones',
 } as const;
 
 const MAX_HISTORY_ENTRIES = 100;
@@ -196,6 +199,30 @@ export const StorageService = {
     await AsyncStorage.setItem(KEYS.CHECK_INS, JSON.stringify(checkIns));
   },
 
+  // Notification preset
+  async getNotificationPreset(): Promise<NotificationPreset | null> {
+    const data = await AsyncStorage.getItem(KEYS.NOTIFICATION_PRESET);
+    return data as NotificationPreset | null;
+  },
+
+  async saveNotificationPreset(preset: NotificationPreset): Promise<void> {
+    await AsyncStorage.setItem(KEYS.NOTIFICATION_PRESET, preset);
+  },
+
+  // Notified milestones — tracks which milestone days have already fired per round
+  async getNotifiedMilestones(roundId: string): Promise<number[]> {
+    const data = await AsyncStorage.getItem(`${KEYS.NOTIFIED_MILESTONES}_${roundId}`);
+    return data ? JSON.parse(data) : [];
+  },
+
+  async saveNotifiedMilestone(roundId: string, days: number): Promise<void> {
+    const existing = await this.getNotifiedMilestones(roundId);
+    if (!existing.includes(days)) {
+      existing.push(days);
+      await AsyncStorage.setItem(`${KEYS.NOTIFIED_MILESTONES}_${roundId}`, JSON.stringify(existing));
+    }
+  },
+
   // Clear all data (for testing/debug)
   async clearAllData(): Promise<void> {
     await AsyncStorage.multiRemove([
@@ -207,6 +234,7 @@ export const StorageService = {
       KEYS.ONBOARDING_COMPLETE,
       KEYS.ROUNDS,
       KEYS.CHECK_INS,
+      KEYS.NOTIFICATION_PRESET,
     ]);
   },
 };

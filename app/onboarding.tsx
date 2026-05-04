@@ -14,8 +14,16 @@ import { ThemedText } from '@/components/themed-text';
 import { useTimer } from '@/contexts/timer-context';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { isPastDate, isValidStartDate } from '@/utils/onboarding';
+import { NotificationService } from '@/services/notification-service';
+import type { NotificationPreset } from '@/utils/notifications';
 
-type Step = 'welcome' | 'date';
+type Step = 'welcome' | 'date' | 'notifications';
+
+const PRESETS: { key: NotificationPreset; label: string; time: string }[] = [
+  { key: 'morning', label: '🌅 Morning', time: '8:00 AM' },
+  { key: 'afternoon', label: '☀️ Afternoon', time: '2:00 PM' },
+  { key: 'evening', label: '🌙 Evening', time: '8:00 PM' },
+];
 
 // Merge a time-of-day from one Date into the calendar date of another
 function mergeDateAndTime(date: Date, time: Date): Date {
@@ -37,8 +45,10 @@ function formatDateTime(date: Date): string {
 
 export default function OnboardingScreen() {
   const router = useRouter();
-  const { completeOnboarding, storedStartDate, isLoading } = useTimer();
+  const { completeOnboarding, isLoading } = useTimer();
   const [step, setStep] = useState<Step>('welcome');
+  const [selectedPreset, setSelectedPreset] = useState<NotificationPreset>('evening');
+  const [permissionGranted, setPermissionGranted] = useState<boolean | null>(null);
 
   const now = new Date();
   const minDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
@@ -49,10 +59,8 @@ export default function OnboardingScreen() {
   // Sync selectedDate once hydration is complete
   useEffect(() => {
     if (isLoading) return;
-    setSelectedDate(
-      storedStartDate && isValidStartDate(storedStartDate) ? storedStartDate : new Date()
-    );
-  }, [isLoading, storedStartDate]);
+    setSelectedDate(new Date());
+  }, [isLoading]);
 
   // Android: show each picker as a modal one at a time
   const [showDatePicker, setShowDatePicker] = useState(Platform.OS === 'ios');
@@ -69,7 +77,13 @@ export default function OnboardingScreen() {
 
   const handleConfirm = async () => {
     if (!canConfirm) return;
-    await completeOnboarding(selectedDate!);
+    setStep('notifications');
+    const granted = await NotificationService.requestPermission();
+    setPermissionGranted(granted);
+  };
+
+  const handleFinish = async (preset?: NotificationPreset) => {
+    await completeOnboarding(selectedDate!, preset);
     router.replace('/(tabs)');
   };
 
@@ -106,6 +120,61 @@ export default function OnboardingScreen() {
         >
           <ThemedText style={styles.primaryButtonText}>Get Started</ThemedText>
         </Pressable>
+      </SafeAreaView>
+    );
+  }
+
+  if (step === 'notifications') {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor }]}>
+        <View style={styles.welcomeContent}>
+          <ThemedText style={styles.title}>Stay on track</ThemedText>
+          <ThemedText style={[styles.subtitle, { color: secondaryColor }]}>
+            {permissionGranted === false
+              ? 'You can enable notifications later in Settings.'
+              : 'When would you like your daily check-in reminder?'}
+          </ThemedText>
+
+          {permissionGranted && (
+            <View style={styles.presetList}>
+              {PRESETS.map((p) => (
+                <Pressable
+                  key={p.key}
+                  style={[
+                    styles.presetRow,
+                    { backgroundColor: cardBackground, borderColor },
+                    selectedPreset === p.key && { borderColor: tintColor },
+                  ]}
+                  onPress={() => setSelectedPreset(p.key)}
+                >
+                  <ThemedText style={styles.presetLabel}>{p.label}</ThemedText>
+                  <ThemedText style={[styles.presetTime, { color: secondaryColor }]}>
+                    {p.time}
+                  </ThemedText>
+                </Pressable>
+              ))}
+            </View>
+          )}
+        </View>
+
+        <View style={styles.notifActions}>
+          {permissionGranted && (
+            <Pressable
+              style={[styles.primaryButton, { backgroundColor: tintColor }]}
+              onPress={() => handleFinish(selectedPreset)}
+            >
+              <ThemedText style={styles.primaryButtonText}>Set reminder</ThemedText>
+            </Pressable>
+          )}
+          <Pressable
+            style={[styles.secondaryButton]}
+            onPress={() => handleFinish(undefined)}
+          >
+            <ThemedText style={[styles.secondaryButtonText, { color: secondaryColor }]}>
+              {permissionGranted ? 'Skip' : 'Continue without notifications'}
+            </ThemedText>
+          </Pressable>
+        </View>
       </SafeAreaView>
     );
   }
@@ -298,5 +367,36 @@ const styles = StyleSheet.create({
   },
   loader: {
     flex: 1,
+  },
+  presetList: {
+    width: '100%',
+    gap: 12,
+    marginTop: 8,
+  },
+  presetRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 14,
+    borderWidth: 1.5,
+  },
+  presetLabel: {
+    fontSize: 17,
+    fontWeight: '500',
+  },
+  presetTime: {
+    fontSize: 15,
+  },
+  notifActions: {
+    gap: 8,
+  },
+  secondaryButton: {
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  secondaryButtonText: {
+    fontSize: 15,
   },
 });

@@ -222,7 +222,7 @@ These were originally out of scope but built during Feature 1 development.
 - [ ] Test round comparison: Round 2 summary shows improvement vs Round 1
 - [ ] Test relapse flow: 1st, 2nd, 3rd+ same-day relapses show correct behavior
 - [ ] Test relapse card: precise time under 24h, day count after 24h, never both
-- [ ] Test notifications: delivery when app is closed, day count accurate
+- [ ] Test notifications (physical device only): grant permission in onboarding, set preset, background the app, wait for trigger time — confirm notification fires with correct "Day X — tap to check in" text; tap it and confirm app opens to home screen; verify milestone notification fires after 7 clean days
 - [ ] Test check-in: card resets at midnight, modal saves, history shows entries
 - [ ] Test on physical iOS device
 - [ ] Bump version to `1.3.0` in `app.json`, increment `versionCode` to `3`
