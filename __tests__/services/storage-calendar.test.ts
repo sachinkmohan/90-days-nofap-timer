@@ -65,16 +65,6 @@ describe('StorageService.addCalendarEvent', () => {
 });
 
 describe('StorageService.clear', () => {
-  it('clears history correctly', async () => {
-    await StorageService.addHistoryEntry({ id: '1', resetDate: '2026-03-20T00:00:00.000Z', trigger: '', streakDays: 5 });
-    let history = await StorageService.getHistory();
-    expect(history).toHaveLength(1);
-
-    await StorageService.clearHistory();
-    history = await StorageService.getHistory();
-    expect(history).toHaveLength(0);
-  });
-
   it('clears calendar events correctly', async () => {
     await StorageService.addCalendarEvent({ date: '2026-03-20', type: 'relapsed' });
     let events = await StorageService.getCalendarEvents();

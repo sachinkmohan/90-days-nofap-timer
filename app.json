@@ -10,7 +10,10 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.ninetydaysnofaptracker.app"
+      "bundleIdentifier": "com.ninetydaysnofaptracker.app",
+      "infoPlist": {
+        "NSUserNotificationsUsageDescription": "Get a daily reminder to check in and stay on track."
+      }
     },
     "android": {
       "package": "com.ninetydaysnofaptracker.app",
@@ -30,6 +33,12 @@
     },
     "plugins": [
       "expo-router",
+      [
+        "expo-notifications",
+        {
+          "iosDisplayInForeground": true
+        }
+      ],
       [
         "expo-splash-screen",
         {

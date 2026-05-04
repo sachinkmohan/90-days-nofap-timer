@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { TimerState, ResetEntry, CalendarEvent, Round, RelapseEvent, CheckInEntry } from '@/types/timer';
+import type { CalendarEvent, Round, RelapseEvent, CheckInEntry } from '@/types/timer';
+import type { NotificationPreset } from '@/utils/notifications';
 
 const KEYS = {
   TIMER_STATE: '@timer_state',
@@ -10,11 +11,11 @@ const KEYS = {
   ONBOARDING_COMPLETE: '@onboarding_complete',
   ROUNDS: '@rounds',
   CHECK_INS: '@check_ins',
+  NOTIFICATION_PRESET: '@notification_preset',
+  NOTIFIED_MILESTONES: '@notified_milestones',
 } as const;
 
-const MAX_HISTORY_ENTRIES = 100;
-
-// Simple async mutex for serializing history writes
+// Simple async mutex for serializing calendar event writes
 let historyWriteLock: Promise<void> = Promise.resolve();
 
 async function withHistoryLock<T>(fn: () => Promise<T>): Promise<T> {
@@ -33,41 +34,6 @@ async function withHistoryLock<T>(fn: () => Promise<T>): Promise<T> {
 }
 
 export const StorageService = {
-  // Timer State
-  async getTimerState(): Promise<TimerState | null> {
-    const data = await AsyncStorage.getItem(KEYS.TIMER_STATE);
-    return data ? JSON.parse(data) : null;
-  },
-
-  async setTimerState(state: TimerState): Promise<void> {
-    await AsyncStorage.setItem(KEYS.TIMER_STATE, JSON.stringify(state));
-  },
-
-  // History
-  async getHistory(): Promise<ResetEntry[]> {
-    const data = await AsyncStorage.getItem(KEYS.RESET_HISTORY);
-    return data ? JSON.parse(data) : [];
-  },
-
-  async addHistoryEntry(entry: ResetEntry): Promise<void> {
-    await withHistoryLock(async () => {
-      try {
-        const history = await this.getHistory();
-        history.unshift(entry); // Add to beginning (newest first)
-
-        // Enforce max history size
-        if (history.length > MAX_HISTORY_ENTRIES) {
-          history.length = MAX_HISTORY_ENTRIES;
-        }
-
-        await AsyncStorage.setItem(KEYS.RESET_HISTORY, JSON.stringify(history));
-      } catch (error) {
-        console.error('Failed to add history entry:', error);
-        throw error;
-      }
-    });
-  },
-
   // Celebration tracking (keyed by streak start date to show once per streak)
   async hasCelebrationBeenShown(streakStartDate: string): Promise<boolean> {
     const data = await AsyncStorage.getItem(KEYS.CELEBRATION_SHOWN);
@@ -123,10 +89,6 @@ export const StorageService = {
         throw error;
       }
     });
-  },
-
-  async clearHistory(): Promise<void> {
-    await AsyncStorage.removeItem(KEYS.RESET_HISTORY);
   },
 
   async clearCalendarEvents(): Promise<void> {
@@ -196,8 +158,35 @@ export const StorageService = {
     await AsyncStorage.setItem(KEYS.CHECK_INS, JSON.stringify(checkIns));
   },
 
+  // Notification preset
+  async getNotificationPreset(): Promise<NotificationPreset | null> {
+    const data = await AsyncStorage.getItem(KEYS.NOTIFICATION_PRESET);
+    return data as NotificationPreset | null;
+  },
+
+  async saveNotificationPreset(preset: NotificationPreset): Promise<void> {
+    await AsyncStorage.setItem(KEYS.NOTIFICATION_PRESET, preset);
+  },
+
+  // Notified milestones — keyed per streak (roundId + streakId) so a new clean
+  // streak after a relapse can re-fire the same milestone thresholds.
+  async getNotifiedMilestones(roundId: string, streakId: string): Promise<number[]> {
+    const data = await AsyncStorage.getItem(`${KEYS.NOTIFIED_MILESTONES}_${roundId}_${streakId}`);
+    return data ? JSON.parse(data) : [];
+  },
+
+  async saveNotifiedMilestone(roundId: string, streakId: string, days: number): Promise<void> {
+    const existing = await this.getNotifiedMilestones(roundId, streakId);
+    if (!existing.includes(days)) {
+      existing.push(days);
+      await AsyncStorage.setItem(`${KEYS.NOTIFIED_MILESTONES}_${roundId}_${streakId}`, JSON.stringify(existing));
+    }
+  },
+
   // Clear all data (for testing/debug)
   async clearAllData(): Promise<void> {
+    const allKeys = await AsyncStorage.getAllKeys();
+    const milestoneKeys = allKeys.filter((k) => k.startsWith(KEYS.NOTIFIED_MILESTONES));
     await AsyncStorage.multiRemove([
       KEYS.TIMER_STATE,
       KEYS.RESET_HISTORY,
@@ -207,6 +196,8 @@ export const StorageService = {
       KEYS.ONBOARDING_COMPLETE,
       KEYS.ROUNDS,
       KEYS.CHECK_INS,
+      KEYS.NOTIFICATION_PRESET,
+      ...milestoneKeys,
     ]);
   },
 };

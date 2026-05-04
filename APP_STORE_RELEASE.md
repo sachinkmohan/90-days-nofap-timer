@@ -152,30 +152,30 @@ These were originally out of scope but built during Feature 1 development.
 > Requires Feature 1 done first so `dayInRound` is accurate in notification text.
 
 ### Setup
-- [ ] Install `expo-notifications`
-- [ ] Add `expo-notifications` to `app.json` plugins
-- [ ] Add `NSUserNotificationsUsageDescription` to `app.json` ios infoPlist
+- [x] Install `expo-notifications`
+- [x] Add `expo-notifications` to `app.json` plugins
+- [x] Add `NSUserNotificationsUsageDescription` to `app.json` ios infoPlist
 
 ### Onboarding (`app/onboarding.tsx`)
-- [ ] Add notification step as the last screen before finishing onboarding
-- [ ] Show reason before permission prompt: *"Get a daily reminder to check in and stay on track"*
-- [ ] Request permission via `expo-notifications`
-- [ ] If granted, show 3 preset options:
+- [x] Add notification step as the last screen before finishing onboarding
+- [x] Show reason before permission prompt: *"Get a daily reminder to check in and stay on track"*
+- [x] Request permission via `expo-notifications`
+- [x] If granted, show 3 preset options:
   - 🌅 Morning (8:00 AM)
   - ☀️ Afternoon (2:00 PM)
   - 🌙 Evening (8:00 PM)
-- [ ] Save chosen preset to `StorageService`
-- [ ] If denied, skip silently — don't block onboarding completion
+- [x] Save chosen preset to `StorageService`
+- [x] If denied, skip silently — don't block onboarding completion
 
 ### Daily Reminder
-- [ ] Schedule a repeating daily local notification at the chosen preset time
-- [ ] Notification text: *"Day [X] — tap to check in"* using `dayInRound`
-- [ ] Tapping notification navigates to home screen (check-in card is there)
-- [ ] Reschedule on `startNewRound()` so day count resets correctly
+- [x] Schedule a repeating daily local notification at the chosen preset time
+- [x] Notification text: *"Day [X] — tap to check in"* using `dayInRound`
+- [x] Tapping notification navigates to home screen (check-in card is there)
+- [x] Reschedule on `startNewRound()` so day count resets correctly
 
 ### Milestone Notifications
-- [ ] Trigger a local notification when `daysSinceLastRelapse` hits 7, 14, 30, 60 days
-- [ ] Example: *"14 days since your last relapse. Keep going."*
+- [x] Trigger a local notification when `daysSinceLastRelapse` hits 7, 14, 30, 60 days
+- [x] Example: *"14 days since your last relapse. Keep going."*
 
 ---
 
@@ -222,7 +222,7 @@ These were originally out of scope but built during Feature 1 development.
 - [ ] Test round comparison: Round 2 summary shows improvement vs Round 1
 - [ ] Test relapse flow: 1st, 2nd, 3rd+ same-day relapses show correct behavior
 - [ ] Test relapse card: precise time under 24h, day count after 24h, never both
-- [ ] Test notifications: delivery when app is closed, day count accurate
+- [ ] Test notifications (physical device only): grant permission in onboarding, set preset, background the app, wait for trigger time — confirm notification fires with correct "Day X — tap to check in" text; tap it and confirm app opens to home screen; verify milestone notification fires after 7 clean days
 - [ ] Test check-in: card resets at midnight, modal saves, history shows entries
 - [ ] Test on physical iOS device
 - [ ] Bump version to `1.3.0` in `app.json`, increment `versionCode` to `3`
