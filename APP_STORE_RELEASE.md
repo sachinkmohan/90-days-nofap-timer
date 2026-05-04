@@ -184,21 +184,21 @@ These were originally out of scope but built during Feature 1 development.
 > Requires Feature 1 (check-in card on home screen is already scaffolded there).
 
 ### Check-in Modal (`app/check-in-modal.tsx`)
-- [ ] Show "Day [X]" at top using `dayInRound`
-- [ ] Show daily mantra/prompt — rotate through list using day of year as index:
+- [x] Show "Day [X]" at top using `dayInRound`
+- [x] Show daily mantra/prompt — rotate through list using day of year as index:
   - *"What's one thing that felt hard today?"*
   - *"What are you proud of this week?"*
   - *"What triggered you recently and how did you handle it?"*
   - *"What would you tell yourself on day 1?"*
   - *"What helped you get through today?"*
-- [ ] Show mantra banner here (removed from home screen)
-- [ ] Mood selection — required, one tap: 😤 Struggling / 😐 Neutral / 💪 Strong
-- [ ] Optional free text: *"Anything to add?"* (280 char limit)
-- [ ] "Save" button → calls `saveCheckIn()`, closes modal
-- [ ] "Skip" button → closes modal, no entry saved
+- [x] Show mantra banner here (removed from home screen)
+- [x] Mood selection — required, one tap: 😤 Struggling / 😐 Neutral / 💪 Strong
+- [x] Optional free text: *"Anything to add?"* (280 char limit)
+- [x] "Save" button → calls `saveCheckIn()`, closes modal
+- [x] "Skip" button → closes modal, no entry saved
 
 ### History Tab Integration (`app/(tabs)/history.tsx`)
-- [ ] Each day entry shows:
+- [x] Each day entry shows:
   - Clean day with check-in: mood emoji + note preview, tap to expand full note
   - Relapse day: red indicator + relapse count, tap to expand. If checked in that day, show mood below relapse info.
   - Days with no check-in: no journal indicator shown
