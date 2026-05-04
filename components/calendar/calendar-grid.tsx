@@ -69,7 +69,7 @@ export function CalendarGrid({ startDate, relapses }: CalendarGridProps) {
         }}
         onMomentumScrollEnd={(e) => {
           const page = Math.round(e.nativeEvent.contentOffset.x / width);
-          setActivePage(page);
+          setActivePage(page as 0 | 1 | 2);
         }}
         style={{ width }}
       >

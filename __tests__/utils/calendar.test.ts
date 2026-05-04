@@ -1,5 +1,4 @@
-import { getDayStatus, getCalendarPage, computeTotalCleanDays, toLocalDateStr } from '@/utils/calendar';
-import type { ResetEntry } from '@/types/timer';
+import { getDayStatus, getCalendarPage, toLocalDateStr } from '@/utils/calendar';
 import type { CalendarEvent } from '@/types/timer';
 
 beforeAll(() => {
@@ -78,27 +77,3 @@ describe('getCalendarPage', () => {
   });
 });
 
-describe('computeTotalCleanDays', () => {
-  it('returns just the current days when there is no history', () => {
-    expect(computeTotalCleanDays([], 7)).toBe(7);
-  });
-
-  it('adds history streak days to the current streak', () => {
-    const history: ResetEntry[] = [
-      { id: '1', resetDate: '', trigger: '', streakDays: 14 },
-      { id: '2', resetDate: '', trigger: '', streakDays: 5 },
-    ];
-    expect(computeTotalCleanDays(history, 3)).toBe(22);
-  });
-
-  it('handles missing streakDays gracefully (returns 0 for them)', () => {
-    // @ts-ignore - simulating legacy data with missing fields
-    const legacyHistory: ResetEntry[] = [
-      { id: '1', resetDate: '', trigger: '' },
-      { id: '2', resetDate: '', trigger: '', streakDays: 5 },
-    ];
-    // Expected: 0 (missing) + 5 (present) + 3 (current) = 8
-    // If NOT robust, this would be NaN
-    expect(computeTotalCleanDays(legacyHistory, 3)).toBe(8);
-  });
-});

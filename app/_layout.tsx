@@ -20,7 +20,7 @@ export default function RootLayout() {
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="onboarding" options={{ headerShown: false }} />
           <Stack.Screen
-            name="reset-modal"
+            name="check-in-modal"
             options={{
               presentation: 'modal',
               headerShown: false,

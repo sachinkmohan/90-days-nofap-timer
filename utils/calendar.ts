@@ -1,4 +1,4 @@
-import type { CalendarEvent, ResetEntry } from '@/types/timer';
+import type { CalendarEvent } from '@/types/timer';
 
 export type DayStatus = 'clean' | 'relapsed' | 'today' | 'future';
 
@@ -7,10 +7,6 @@ export function toLocalDateStr(date: Date): string {
   const m = String(date.getMonth() + 1).padStart(2, '0');
   const d = String(date.getDate()).padStart(2, '0');
   return `${y}-${m}-${d}`;
-}
-
-export function computeTotalCleanDays(history: ResetEntry[], currentDays: number): number {
-  return history.reduce((sum, e) => sum + (e.streakDays || 0), 0) + currentDays;
 }
 
 export function getCalendarPage(startDate: Date): 0 | 1 | 2 {
