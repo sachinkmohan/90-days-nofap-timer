@@ -10,7 +10,7 @@ import { StorageService } from '@/services/storage';
 import { DevStorageService } from '@/services/dev-storage';
 import { NotificationService } from '@/services/notification-service';
 import { getDayInRound, getDaysSinceLastRelapse, getRelapseCountToday } from '@/utils/rounds';
-import { getMilestoneReached } from '@/utils/notifications';
+import { MILESTONES, type MilestoneDays } from '@/utils/notifications';
 import { shouldSkipOnboarding } from '@/utils/onboarding';
 import { isSameDay } from 'date-fns';
 import type { Round, CheckInEntry } from '@/types/timer';
@@ -94,17 +94,22 @@ export function TimerProvider({ children }: { children: ReactNode }) {
       const storedCheckIns = await StorageService.getCheckIns();
       setCheckIns(storedCheckIns);
 
-      // Check for milestone notifications on app open
+      // Check for milestone notifications on app open — iterate all thresholds
+      // so milestones crossed while the app was closed are not missed.
       if (activeRound) {
         const relapses = activeRound.relapses;
         const days = getDaysSinceLastRelapse(relapses);
         if (days !== null) {
-          const milestone = getMilestoneReached(days);
-          if (milestone) {
-            const notified = await StorageService.getNotifiedMilestones(activeRound.id);
-            if (!notified.includes(milestone)) {
-              await NotificationService.fireMilestoneNotification(milestone);
-              await StorageService.saveNotifiedMilestone(activeRound.id, milestone);
+          const lastRelapse = relapses.length > 0
+            ? relapses.reduce((a, b) => new Date(a.timestamp) > new Date(b.timestamp) ? a : b).timestamp
+            : activeRound.startDate;
+          const notified = await StorageService.getNotifiedMilestones(activeRound.id, lastRelapse);
+          for (const milestone of MILESTONES) {
+            if (days >= milestone && !notified.includes(milestone)) {
+              const fired = await NotificationService.fireMilestoneNotification(milestone as MilestoneDays);
+              if (fired) {
+                await StorageService.saveNotifiedMilestone(activeRound.id, lastRelapse, milestone);
+              }
             }
           }
         }

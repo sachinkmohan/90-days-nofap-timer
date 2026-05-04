@@ -1,6 +1,6 @@
 export type NotificationPreset = 'morning' | 'afternoon' | 'evening';
 
-const MILESTONES = [7, 14, 30, 60] as const;
+export const MILESTONES = [7, 14, 30, 60] as const;
 export type MilestoneDays = (typeof MILESTONES)[number];
 
 export function getPresetHour(preset: NotificationPreset): number {

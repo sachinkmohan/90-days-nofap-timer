@@ -50,10 +50,7 @@ describe('getDayStatus', () => {
     const startDate = daysAgo(5);
     const relapsedDate = daysAgo(3); // dayIndex 2
     const events: CalendarEvent[] = [
-      {
-        date: `${relapsedDate.getFullYear()}-${String(relapsedDate.getMonth() + 1).padStart(2, '0')}-${String(relapsedDate.getDate()).padStart(2, '0')}`,
-        type: 'relapsed',
-      },
+      { date: toLocalDateStr(relapsedDate), type: 'relapsed' },
     ];
     expect(getDayStatus(startDate, 2, events)).toBe('relapsed');
   });

@@ -10,7 +10,7 @@ import {
 import { getDayInRound } from '@/utils/rounds';
 
 const DAILY_ID_PREFIX = 'daily-day-';
-const DAYS_TO_SCHEDULE = 7;
+const MAX_DAILY_TO_SCHEDULE = 60;
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -42,10 +42,10 @@ export const NotificationService = {
     const hour = getPresetHour(preset);
     const today = new Date();
     const currentDayInRound = getDayInRound(roundStartDate);
+    const remainingDays = Math.min(90 - currentDayInRound + 1, MAX_DAILY_TO_SCHEDULE);
 
-    for (let i = 0; i < DAYS_TO_SCHEDULE; i++) {
+    for (let i = 0; i < remainingDays; i++) {
       const dayNum = currentDayInRound + i;
-      if (dayNum > 90) break;
 
       const triggerDate = new Date(today);
       triggerDate.setDate(today.getDate() + i);
@@ -77,17 +77,22 @@ export const NotificationService = {
     }
   },
 
-  async fireMilestoneNotification(days: MilestoneDays): Promise<void> {
+  async fireMilestoneNotification(days: MilestoneDays): Promise<boolean> {
     const granted = await this.requestPermission();
-    if (!granted) return;
+    if (!granted) return false;
 
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title: '90 Days',
-        body: getMilestoneNotificationBody(days),
-      },
-      trigger: null,
-    });
+    try {
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: '90 Days',
+          body: getMilestoneNotificationBody(days),
+        },
+        trigger: null,
+      });
+      return true;
+    } catch {
+      return false;
+    }
   },
 
   async cancelAllNotifications(): Promise<void> {

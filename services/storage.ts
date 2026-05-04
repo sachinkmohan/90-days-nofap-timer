@@ -168,22 +168,25 @@ export const StorageService = {
     await AsyncStorage.setItem(KEYS.NOTIFICATION_PRESET, preset);
   },
 
-  // Notified milestones — tracks which milestone days have already fired per round
-  async getNotifiedMilestones(roundId: string): Promise<number[]> {
-    const data = await AsyncStorage.getItem(`${KEYS.NOTIFIED_MILESTONES}_${roundId}`);
+  // Notified milestones — keyed per streak (roundId + streakId) so a new clean
+  // streak after a relapse can re-fire the same milestone thresholds.
+  async getNotifiedMilestones(roundId: string, streakId: string): Promise<number[]> {
+    const data = await AsyncStorage.getItem(`${KEYS.NOTIFIED_MILESTONES}_${roundId}_${streakId}`);
     return data ? JSON.parse(data) : [];
   },
 
-  async saveNotifiedMilestone(roundId: string, days: number): Promise<void> {
-    const existing = await this.getNotifiedMilestones(roundId);
+  async saveNotifiedMilestone(roundId: string, streakId: string, days: number): Promise<void> {
+    const existing = await this.getNotifiedMilestones(roundId, streakId);
     if (!existing.includes(days)) {
       existing.push(days);
-      await AsyncStorage.setItem(`${KEYS.NOTIFIED_MILESTONES}_${roundId}`, JSON.stringify(existing));
+      await AsyncStorage.setItem(`${KEYS.NOTIFIED_MILESTONES}_${roundId}_${streakId}`, JSON.stringify(existing));
     }
   },
 
   // Clear all data (for testing/debug)
   async clearAllData(): Promise<void> {
+    const allKeys = await AsyncStorage.getAllKeys();
+    const milestoneKeys = allKeys.filter((k) => k.startsWith(KEYS.NOTIFIED_MILESTONES));
     await AsyncStorage.multiRemove([
       KEYS.TIMER_STATE,
       KEYS.RESET_HISTORY,
@@ -194,6 +197,7 @@ export const StorageService = {
       KEYS.ROUNDS,
       KEYS.CHECK_INS,
       KEYS.NOTIFICATION_PRESET,
+      ...milestoneKeys,
     ]);
   },
 };
