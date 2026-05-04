@@ -75,9 +75,12 @@ export default function OnboardingScreen() {
   const showWarning = selectedDate !== null && isPastDate(selectedDate);
   const canConfirm = !isLoading && selectedDate !== null && isValidStartDate(selectedDate);
 
-  const handleConfirm = async () => {
+  const handleConfirm = () => {
     if (!canConfirm) return;
     setStep('notifications');
+  };
+
+  const handleRequestPermission = async () => {
     const granted = await NotificationService.requestPermission();
     setPermissionGranted(granted);
   };
@@ -125,53 +128,90 @@ export default function OnboardingScreen() {
   }
 
   if (step === 'notifications') {
+    // Reason screen — shown before the system permission dialog fires
+    if (permissionGranted === null) {
+      return (
+        <SafeAreaView style={[styles.container, { backgroundColor }]}>
+          <View style={styles.welcomeContent}>
+            <ThemedText style={styles.title}>Stay on track</ThemedText>
+            <ThemedText style={[styles.subtitle, { color: secondaryColor }]}>
+              Get a daily reminder to check in and stay on track.
+            </ThemedText>
+          </View>
+          <View style={styles.notifActions}>
+            <Pressable
+              style={[styles.primaryButton, { backgroundColor: tintColor }]}
+              onPress={handleRequestPermission}
+            >
+              <ThemedText style={styles.primaryButtonText}>Allow notifications</ThemedText>
+            </Pressable>
+            <Pressable style={styles.secondaryButton} onPress={() => handleFinish(undefined)}>
+              <ThemedText style={[styles.secondaryButtonText, { color: secondaryColor }]}>
+                Skip
+              </ThemedText>
+            </Pressable>
+          </View>
+        </SafeAreaView>
+      );
+    }
+
+    // Denied — skip silently, don't block
+    if (permissionGranted === false) {
+      return (
+        <SafeAreaView style={[styles.container, { backgroundColor }]}>
+          <View style={styles.welcomeContent}>
+            <ThemedText style={styles.title}>No problem</ThemedText>
+            <ThemedText style={[styles.subtitle, { color: secondaryColor }]}>
+              You can enable notifications later in Settings.
+            </ThemedText>
+          </View>
+          <Pressable
+            style={[styles.primaryButton, { backgroundColor: tintColor }]}
+            onPress={() => handleFinish(undefined)}
+          >
+            <ThemedText style={styles.primaryButtonText}>Continue</ThemedText>
+          </Pressable>
+        </SafeAreaView>
+      );
+    }
+
+    // Granted — show preset picker
     return (
       <SafeAreaView style={[styles.container, { backgroundColor }]}>
         <View style={styles.welcomeContent}>
-          <ThemedText style={styles.title}>Stay on track</ThemedText>
+          <ThemedText style={styles.title}>When?</ThemedText>
           <ThemedText style={[styles.subtitle, { color: secondaryColor }]}>
-            {permissionGranted === false
-              ? 'You can enable notifications later in Settings.'
-              : 'When would you like your daily check-in reminder?'}
+            Pick your daily check-in time.
           </ThemedText>
-
-          {permissionGranted && (
-            <View style={styles.presetList}>
-              {PRESETS.map((p) => (
-                <Pressable
-                  key={p.key}
-                  style={[
-                    styles.presetRow,
-                    { backgroundColor: cardBackground, borderColor },
-                    selectedPreset === p.key && { borderColor: tintColor },
-                  ]}
-                  onPress={() => setSelectedPreset(p.key)}
-                >
-                  <ThemedText style={styles.presetLabel}>{p.label}</ThemedText>
-                  <ThemedText style={[styles.presetTime, { color: secondaryColor }]}>
-                    {p.time}
-                  </ThemedText>
-                </Pressable>
-              ))}
-            </View>
-          )}
+          <View style={styles.presetList}>
+            {PRESETS.map((p) => (
+              <Pressable
+                key={p.key}
+                style={[
+                  styles.presetRow,
+                  { backgroundColor: cardBackground, borderColor },
+                  selectedPreset === p.key && { borderColor: tintColor },
+                ]}
+                onPress={() => setSelectedPreset(p.key)}
+              >
+                <ThemedText style={styles.presetLabel}>{p.label}</ThemedText>
+                <ThemedText style={[styles.presetTime, { color: secondaryColor }]}>
+                  {p.time}
+                </ThemedText>
+              </Pressable>
+            ))}
+          </View>
         </View>
-
         <View style={styles.notifActions}>
-          {permissionGranted && (
-            <Pressable
-              style={[styles.primaryButton, { backgroundColor: tintColor }]}
-              onPress={() => handleFinish(selectedPreset)}
-            >
-              <ThemedText style={styles.primaryButtonText}>Set reminder</ThemedText>
-            </Pressable>
-          )}
           <Pressable
-            style={[styles.secondaryButton]}
-            onPress={() => handleFinish(undefined)}
+            style={[styles.primaryButton, { backgroundColor: tintColor }]}
+            onPress={() => handleFinish(selectedPreset)}
           >
+            <ThemedText style={styles.primaryButtonText}>Set reminder</ThemedText>
+          </Pressable>
+          <Pressable style={styles.secondaryButton} onPress={() => handleFinish(undefined)}>
             <ThemedText style={[styles.secondaryButtonText, { color: secondaryColor }]}>
-              {permissionGranted ? 'Skip' : 'Continue without notifications'}
+              Skip
             </ThemedText>
           </Pressable>
         </View>
