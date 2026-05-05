@@ -49,6 +49,7 @@ This is an Expo SDK 54 React Native app using:
 - `utils/round-summary.ts` - Pure helpers: `getLongestCleanStreak`, `getRoundComparison`, `getRoundDuration`
 - `utils/check-in.ts` - Pure helpers: `getCheckInPrompt(dayOfYear)` rotates 5 reflection prompts by day-of-year
 - `utils/history.ts` - Pure helpers: `getHistoryDays(round, checkIns)` merges relapses + check-ins into `HistoryDay[]` sorted newest-first
+- `utils/insights.ts` - Pure helpers: `getMoodCounts(round, checkIns, today)` filters check-ins by round date range and returns `{ struggling, neutral, strong }` counts; caller supplies `today` as `YYYY-MM-DD`
 - `types/timer.ts` - Shared TypeScript interfaces: `Round`, `RelapseEvent`, `CheckInEntry`, `CalendarEvent`, `DevModeState`
 - `__tests__/` - Jest unit tests (no React component tests; pure logic and storage only)
 
