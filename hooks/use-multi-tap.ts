@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useRef, useCallback } from 'react';
 import * as Haptics from 'expo-haptics';
 
 interface UseMultiTapOptions {
@@ -7,12 +7,6 @@ interface UseMultiTapOptions {
   enabled?: boolean;
 }
 
-/**
- * Custom hook for detecting multiple rapid taps on a component
- * @param callback - Function to call when required taps are detected
- * @param options - Configuration options
- * @returns Object with handlePress function
- */
 export function useMultiTap(
   callback: () => void,
   options?: UseMultiTapOptions
@@ -23,26 +17,20 @@ export function useMultiTap(
     enabled = true,
   } = options || {};
 
-  const [tapTimes, setTapTimes] = useState<number[]>([]);
+  const tapTimesRef = useRef<number[]>([]);
 
   const handlePress = useCallback(() => {
     if (!enabled) return;
 
     const now = Date.now();
-    let thresholdReached = false;
+    const recent = [...tapTimesRef.current, now].filter((t) => now - t < timeWindow);
 
-    setTapTimes((prev) => {
-      const recent = [...prev, now].filter((t) => now - t < timeWindow);
-      if (recent.length >= tapsRequired) {
-        thresholdReached = true;
-        return [];
-      }
-      return recent;
-    });
-
-    if (thresholdReached) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    if (recent.length >= tapsRequired) {
+      tapTimesRef.current = [];
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setTimeout(callback, 0);
+    } else {
+      tapTimesRef.current = recent;
     }
   }, [callback, enabled, tapsRequired, timeWindow]);
 

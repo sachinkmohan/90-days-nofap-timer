@@ -6,6 +6,58 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [Unreleased] — Feature 3: Daily Check-in + Journal (NFT-19)
+
+### Added
+- **Daily check-in modal** (`app/check-in-modal.tsx`) — Day label, rotating mantra quote via `getQuoteForDay`, daily reflection prompt rotating by day-of-year, 3-tap mood picker (😤 Struggling / 😐 Neutral / 💪 Strong), 280-char optional note field, Save/Skip actions
+- `utils/check-in.ts` — `getCheckInPrompt(dayOfYear)` pure helper; cycles 5 reflection prompts using `dayOfYear % 5`
+- `utils/history.ts` — `getHistoryDays(round, checkIns)` pure helper; merges `RelapseEvent[]` and `CheckInEntry[]` into unified `HistoryDay[]` sorted newest-first
+- `cleanDay` color token in `constants/theme.ts` — `#16A34A` (light) / `#4ADE80` (dark)
+- **Round-complete screen** on home tab (`app/(tabs)/index.tsx`) — when a round ends and the user dismisses the round-summary with "Maybe later", the timer UI is replaced with a minimal "Round complete!" screen showing "Start Round N+1" and "Not yet" (navigates back to round-summary); user is never left with a frozen day-90 timer and no clear next step
+
+### Changed
+- **History tab** (`app/(tabs)/history.tsx`) — rewritten to show merged relapse + check-in entries per day; clean days show green dot + mood emoji + note preview (tap to expand full note); relapse days show red dot + count; days with check-in on a relapse day show mood below relapse info; days with no check-in show no journal indicator
+- `check-in-modal.tsx` — `todayDate` now uses `format(today, 'yyyy-MM-dd')` (date-fns) instead of `toISOString().split('T')[0]` to avoid UTC date shift for users in negative-offset timezones
+- `use-multi-tap.ts` — dev-menu trigger now fires a haptic success notification (`Haptics.notificationAsync`) on the 5th tap; Promise marked `void` to satisfy strict linting
+
+### Fixed
+- `check-in-modal.tsx` — `handleSave` now catches errors from `saveCheckIn` and shows an inline error message instead of producing an unhandled rejection
+- `history.tsx` — clean-day dot replaced hardcoded `#4ADE80` hex with `cleanDay` theme token via `useThemeColor`
+- `app/(tabs)/index.tsx` and `app/round-summary.tsx` — `handleStartNextRound` now has a `catch` block so errors from `finishRound`/`startNewRound` are logged and the double-tap guard is always reset via `finally`
+
+### Tests
+- 114 tests across 12 suites (up from 105)
+- New suites: `check-in.test.ts` (3 tests — prompt rotation, wrap-around), `history.test.ts` (6 tests — empty states, relapse day, check-in day, same-day merge, newest-first sort)
+
+---
+
+## [Unreleased] — Feature 2: Notifications (NFT-18)
+
+### Added
+- `NotificationService` (`services/notification-service.ts`) — schedules repeating daily local notifications at chosen preset time and fires milestone notifications at 7, 14, 30, and 60 clean days
+- Onboarding notification step — requests permission before finishing onboarding, shows 3 preset options (🌅 Morning 8 AM / ☀️ Afternoon 2 PM / 🌙 Evening 8 PM), saves selection; silently skips if permission denied
+- `StorageService` notification methods: `saveNotificationPreset()`, `getNotificationPreset()`, `saveNotifiedMilestone()`, `getNotifiedMilestones()`
+- `utils/notifications.ts` — `getNotificationBody()`, `getPresetHour()`, `MILESTONES` constant (`[7, 14, 30, 60]`)
+- `expo-notifications` plugin and `NSUserNotificationsUsageDescription` added to `app.json`
+- `expo-dev-client` added to dependencies
+- Milestone check on app open — iterates all thresholds so milestones crossed while the app was closed are not missed; deduplicates per round + last-relapse anchor to prevent re-firing
+- Docs: `docs/testing/notifications-testing-guide.md` — notification setup and physical-device testing guide
+
+### Changed
+- `TimerProvider` — checks for overdue milestone notifications and reschedules daily reminders on app open; reschedules on `startNewRound()` so day count resets correctly
+- `StorageService` — simplified; legacy fields removed
+- Removed dead code: `app/reset-modal.tsx`, `components/history/history-item.tsx`, `components/timer/reset-button.tsx`
+- `app/_layout.tsx` — registered `check-in-modal` as a modal screen
+
+### Fixed
+- Milestone notifications deduplicated — same milestone cannot fire twice for the same clean streak anchor
+- `CalendarGrid` and calendar test suite — minor correctness fixes
+
+### Tests
+- Added `__tests__/utils/notifications.test.ts` — 75 tests covering notification body copy, preset hours, and milestone thresholds
+
+---
+
 ## [Unreleased] — Post-Feature-1 Code Review Fixes
 
 ### Added

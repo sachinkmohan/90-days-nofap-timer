@@ -29,6 +29,7 @@ export const Colors = {
     cardBackground: '#FFFFFF',
     border: '#E2E8F0',
     badgeText: '#FFFFFF',
+    cleanDay: '#16A34A',
     // Dev mode colors
     devModeBanner: '#F59E0B',
     devModeText: '#92400E',
@@ -54,6 +55,7 @@ export const Colors = {
     cardBackground: '#1E293B',
     border: '#334155',
     badgeText: '#FFFFFF',
+    cleanDay: '#4ADE80',
     // Dev mode colors
     devModeBanner: '#F59E0B',
     devModeText: '#FEF3C7',

@@ -38,6 +38,8 @@ export default function RoundSummaryScreen() {
       await finishRound();
       await startNewRound();
       router.replace('/(tabs)');
+    } catch (e) {
+      console.error('Failed to start next round', e);
     } finally {
       isStartingRound.current = false;
     }
@@ -129,6 +131,7 @@ const styles = StyleSheet.create({
     fontSize: 48,
     fontWeight: '700',
     fontVariant: ['tabular-nums'],
+    lineHeight: 60,
   },
   statLabel: {
     fontSize: 14,
