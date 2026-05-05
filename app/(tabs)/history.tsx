@@ -15,6 +15,7 @@ function HistoryItem({ item }: { item: HistoryDay }) {
   const border = useThemeColor({}, 'border');
   const secondaryColor = useThemeColor({}, 'timerSecondary');
   const relapsedColor = useThemeColor({}, 'resetButtonPressed');
+  const cleanDayColor = useThemeColor({}, 'cleanDay');
 
   const hasRelapse = item.relapses.length > 0;
   const hasCheckIn = item.checkIn !== null;
@@ -34,7 +35,7 @@ function HistoryItem({ item }: { item: HistoryDay }) {
         {hasRelapse ? (
           <View style={[styles.dot, { backgroundColor: relapsedColor }]} />
         ) : (
-          <View style={[styles.dot, { backgroundColor: '#4ADE80' }]} />
+          <View style={[styles.dot, { backgroundColor: cleanDayColor }]} />
         )}
         <View style={styles.itemContent}>
           <ThemedText style={styles.itemDate}>{dateLabel}</ThemedText>

@@ -4,7 +4,7 @@ import { useThemeColor } from '@/hooks/use-theme-color';
 import { getCheckInPrompt } from '@/utils/check-in';
 import { getQuoteForDay } from '@/utils/quotes';
 import type { CheckInEntry } from '@/types/timer';
-import { getDayOfYear } from 'date-fns';
+import { format, getDayOfYear } from 'date-fns';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
@@ -31,6 +31,7 @@ export default function CheckInModal() {
   const [mood, setMood] = useState<CheckInEntry['mood'] | null>(null);
   const [note, setNote] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const backgroundColor = useThemeColor({}, 'background');
   const cardBackground = useThemeColor({}, 'cardBackground');
@@ -38,16 +39,18 @@ export default function CheckInModal() {
   const secondaryColor = useThemeColor({}, 'timerSecondary');
   const tint = useThemeColor({}, 'tint');
   const textColor = useThemeColor({}, 'text');
+  const relapsedColor = useThemeColor({}, 'resetButtonPressed');
 
   const today = new Date();
   const dayOfYear = getDayOfYear(today);
   const prompt = getCheckInPrompt(dayOfYear);
   const quote = getQuoteForDay(dayInRound);
-  const todayDate = today.toISOString().split('T')[0];
+  const todayDate = format(today, 'yyyy-MM-dd');
 
   const handleSave = async () => {
     if (!mood || isSaving) return;
     setIsSaving(true);
+    setSaveError(null);
     try {
       const entry: CheckInEntry = {
         date: todayDate,
@@ -56,6 +59,9 @@ export default function CheckInModal() {
       };
       await saveCheckIn(entry);
       router.dismiss();
+    } catch (err) {
+      console.error('Failed to save check-in:', err);
+      setSaveError('Could not save. Please try again.');
     } finally {
       setIsSaving(false);
     }
@@ -128,6 +134,12 @@ export default function CheckInModal() {
           {note.length > 0 && (
             <ThemedText style={[styles.charCount, { color: secondaryColor }]}>
               {note.length}/280
+            </ThemedText>
+          )}
+
+          {saveError && (
+            <ThemedText style={[styles.saveError, { color: relapsedColor }]}>
+              {saveError}
             </ThemedText>
           )}
 
@@ -223,6 +235,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: 'right',
     marginTop: -14,
+  },
+  saveError: {
+    fontSize: 13,
+    textAlign: 'center',
   },
   saveButton: {
     paddingVertical: 14,
