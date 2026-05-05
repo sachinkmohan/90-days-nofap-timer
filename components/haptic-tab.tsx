@@ -7,8 +7,11 @@ import { useMultiTap } from '@/hooks/use-multi-tap';
 export function HapticTab(props: BottomTabBarButtonProps) {
   const router = useRouter();
 
-  // Check if this is the History tab
-  const isHistoryTab = props.href?.includes('history') || false;
+  // Check if this is the History tab — href can be a string or object in expo-router,
+  // so fall back to accessibilityLabel which React Navigation always sets from the tab title.
+  const isHistoryTab =
+    (typeof props.href === 'string' && props.href.includes('history')) ||
+    (props.accessibilityLabel?.toLowerCase().includes('history') ?? false);
 
   // Multi-tap detection for dev mode (History tab only, __DEV__ only)
   const { handlePress: handleMultiTap } = useMultiTap(

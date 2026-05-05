@@ -129,6 +129,7 @@ const styles = StyleSheet.create({
     fontSize: 48,
     fontWeight: '700',
     fontVariant: ['tabular-nums'],
+    lineHeight: 60,
   },
   statLabel: {
     fontSize: 14,

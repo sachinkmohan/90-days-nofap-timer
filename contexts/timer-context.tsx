@@ -186,11 +186,21 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     setAllRounds((prev) => [...prev, round]);
     setCurrentRound(round);
 
+    // Always exit dev mode when a new round begins — the new round uses today
+    // as its real startDate, so keeping devStartDate would make dayInRound ≥ 90
+    // immediately and re-trigger the round summary on the home screen.
+    if (isDevMode) {
+      setIsDevMode(false);
+      setDevStartDateState(null);
+      setRealRound(null);
+      await DevStorageService.clearDevMode();
+    }
+
     const preset = await StorageService.getNotificationPreset();
     if (preset) {
       await NotificationService.scheduleDailyNotifications(preset, round.startDate);
     }
-  }, []);
+  }, [isDevMode]);
 
   const saveCheckIn = useCallback(async (entry: CheckInEntry) => {
     await StorageService.saveCheckIn(entry);
