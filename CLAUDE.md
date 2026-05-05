@@ -26,7 +26,7 @@ This is an Expo SDK 54 React Native app using:
 
 - `app/` - File-based routing (expo-router)
   - `_layout.tsx` - Root layout with ThemeProvider and Stack navigator
-  - `(tabs)/` - Tab group: `index.tsx` (home), `history.tsx`, `insights.tsx`
+  - `(tabs)/` - Tab group: `index.tsx` (home), `history.tsx`, `insights.tsx`; home tab shows a round-complete replacement screen (minimal CTA to start next round) when `dayInRound >= 90 && !currentRound.endDate && redirectedToSummary`
   - `onboarding.tsx` - Date-picker onboarding flow (shown on first launch)
   - `check-in-modal.tsx` - Daily check-in modal: mood picker, rotating prompt, mantra quote, optional note
   - `relapse-modal.tsx` - Chaser effect modal (replaces old reset-modal)

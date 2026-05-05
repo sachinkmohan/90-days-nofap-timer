@@ -13,14 +13,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `utils/check-in.ts` — `getCheckInPrompt(dayOfYear)` pure helper; cycles 5 reflection prompts using `dayOfYear % 5`
 - `utils/history.ts` — `getHistoryDays(round, checkIns)` pure helper; merges `RelapseEvent[]` and `CheckInEntry[]` into unified `HistoryDay[]` sorted newest-first
 - `cleanDay` color token in `constants/theme.ts` — `#16A34A` (light) / `#4ADE80` (dark)
+- **Round-complete screen** on home tab (`app/(tabs)/index.tsx`) — when a round ends and the user dismisses the round-summary with "Maybe later", the timer UI is replaced with a minimal "Round complete!" screen showing "Start Round N+1" and "Not yet" (navigates back to round-summary); user is never left with a frozen day-90 timer and no clear next step
 
 ### Changed
 - **History tab** (`app/(tabs)/history.tsx`) — rewritten to show merged relapse + check-in entries per day; clean days show green dot + mood emoji + note preview (tap to expand full note); relapse days show red dot + count; days with check-in on a relapse day show mood below relapse info; days with no check-in show no journal indicator
 - `check-in-modal.tsx` — `todayDate` now uses `format(today, 'yyyy-MM-dd')` (date-fns) instead of `toISOString().split('T')[0]` to avoid UTC date shift for users in negative-offset timezones
+- `use-multi-tap.ts` — dev-menu trigger now fires a haptic success notification (`Haptics.notificationAsync`) on the 5th tap; Promise marked `void` to satisfy strict linting
 
 ### Fixed
 - `check-in-modal.tsx` — `handleSave` now catches errors from `saveCheckIn` and shows an inline error message instead of producing an unhandled rejection
 - `history.tsx` — clean-day dot replaced hardcoded `#4ADE80` hex with `cleanDay` theme token via `useThemeColor`
+- `app/(tabs)/index.tsx` and `app/round-summary.tsx` — `handleStartNextRound` now has a `catch` block so errors from `finishRound`/`startNewRound` are logged and the double-tap guard is always reset via `finally`
 
 ### Tests
 - 114 tests across 12 suites (up from 105)
