@@ -7,7 +7,7 @@ import { FlatList, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { CheckInEntry, Round } from '@/types/timer';
 
-function RoundCard({ round, isActive, checkIns }: { round: Round; isActive: boolean; checkIns: CheckInEntry[] }) {
+function RoundCard({ round, isActive, checkIns, today }: { round: Round; isActive: boolean; checkIns: CheckInEntry[]; today: string }) {
   const cardBackground = useThemeColor({}, 'cardBackground');
   const border = useThemeColor({}, 'border');
   const secondary = useThemeColor({}, 'timerSecondary');
@@ -23,7 +23,7 @@ function RoundCard({ round, isActive, checkIns }: { round: Round; isActive: bool
   );
   const totalRelapses = round.relapses.length;
 
-  const moodCounts = getMoodCounts(round, checkIns);
+  const moodCounts = getMoodCounts(round, checkIns, today);
   const totalCheckIns = moodCounts.struggling + moodCounts.neutral + moodCounts.strong;
 
   const startLabel = new Date(round.startDate).toLocaleDateString(undefined, {
@@ -95,6 +95,7 @@ export default function InsightsScreen() {
   const { allRounds, currentRound, checkIns } = useTimer();
   const backgroundColor = useThemeColor({}, 'background');
   const secondaryColor = useThemeColor({}, 'timerSecondary');
+  const today = new Date().toISOString().split('T')[0];
 
   const sorted = [...allRounds].reverse();
 
@@ -120,7 +121,7 @@ export default function InsightsScreen() {
           </View>
         }
         renderItem={({ item }) => (
-          <RoundCard round={item} isActive={item.id === currentRound?.id} checkIns={checkIns} />
+          <RoundCard round={item} isActive={item.id === currentRound?.id} checkIns={checkIns} today={today} />
         )}
       />
     </SafeAreaView>
