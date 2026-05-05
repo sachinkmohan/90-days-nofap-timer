@@ -1,5 +1,6 @@
 import * as Notifications from 'expo-notifications';
 import { SchedulableTriggerInputTypes } from 'expo-notifications';
+import { Platform } from 'react-native';
 import {
   getPresetHour,
   getDailyNotificationBody,
@@ -12,18 +13,21 @@ import { getDayInRound } from '@/utils/rounds';
 const DAILY_ID_PREFIX = 'daily-day-';
 const MAX_DAILY_TO_SCHEDULE = 60;
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: false,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+if (Platform.OS !== 'web') {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: false,
+      shouldSetBadge: false,
+      shouldShowBanner: true,
+      shouldShowList: true,
+    }),
+  });
+}
 
 export const NotificationService = {
   async requestPermission(): Promise<boolean> {
+    if (Platform.OS === 'web') return false;
     const { status: existing } = await Notifications.getPermissionsAsync();
     if (existing === 'granted') return true;
     const { status } = await Notifications.requestPermissionsAsync();
@@ -34,6 +38,7 @@ export const NotificationService = {
     preset: NotificationPreset,
     roundStartDate: string
   ): Promise<void> {
+    if (Platform.OS === 'web') return;
     await this.cancelDailyNotifications();
 
     const granted = await this.requestPermission();
@@ -68,6 +73,7 @@ export const NotificationService = {
   },
 
   async cancelDailyNotifications(): Promise<void> {
+    if (Platform.OS === 'web') return;
     const pending = await Notifications.getAllScheduledNotificationsAsync();
     const dailyIds = pending
       .filter((n) => n.identifier.startsWith(DAILY_ID_PREFIX))
@@ -78,6 +84,7 @@ export const NotificationService = {
   },
 
   async fireMilestoneNotification(days: MilestoneDays): Promise<boolean> {
+    if (Platform.OS === 'web') return false;
     const granted = await this.requestPermission();
     if (!granted) return false;
 
@@ -96,6 +103,7 @@ export const NotificationService = {
   },
 
   async cancelAllNotifications(): Promise<void> {
+    if (Platform.OS === 'web') return;
     await Notifications.cancelAllScheduledNotificationsAsync();
   },
 };
