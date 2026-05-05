@@ -28,6 +28,7 @@ This is an Expo SDK 54 React Native app using:
   - `_layout.tsx` - Root layout with ThemeProvider and Stack navigator
   - `(tabs)/` - Tab group: `index.tsx` (home), `history.tsx`, `insights.tsx`
   - `onboarding.tsx` - Date-picker onboarding flow (shown on first launch)
+  - `check-in-modal.tsx` - Daily check-in modal: mood picker, rotating prompt, mantra quote, optional note
   - `relapse-modal.tsx` - Chaser effect modal (replaces old reset-modal)
   - `round-summary.tsx` - End-of-round summary screen
   - `dev-menu-modal.tsx` - Dev tools (5-tap History tab to open)
@@ -46,13 +47,15 @@ This is an Expo SDK 54 React Native app using:
 - `utils/rounds.ts` - Pure helpers: `getDayInRound`, `getDaysSinceLastRelapse`, `getRelapseCountToday`
 - `utils/relapse-card.ts` - Pure helpers: `getRelapseCardDisplayMode`, `getRelapsesForDay`, `getRelapseMessage`
 - `utils/round-summary.ts` - Pure helpers: `getLongestCleanStreak`, `getRoundComparison`, `getRoundDuration`
+- `utils/check-in.ts` - Pure helpers: `getCheckInPrompt(dayOfYear)` rotates 5 reflection prompts by day-of-year
+- `utils/history.ts` - Pure helpers: `getHistoryDays(round, checkIns)` merges relapses + check-ins into `HistoryDay[]` sorted newest-first
 - `types/timer.ts` - Shared TypeScript interfaces: `Round`, `RelapseEvent`, `CheckInEntry`, `CalendarEvent`, `DevModeState`
 - `__tests__/` - Jest unit tests (no React component tests; pure logic and storage only)
 
 ### Theming Pattern
 
 The app uses a consistent theming approach:
-1. `Colors` object in `constants/theme.ts` defines light/dark color palettes; `badgeText` token for text on tinted badge backgrounds
+1. `Colors` object in `constants/theme.ts` defines light/dark color palettes; `badgeText` token for text on tinted badge backgrounds; `cleanDay` token for clean-day indicators in history
 2. `useColorScheme()` hook detects system theme preference
 3. `useThemeColor()` hook resolves colors based on current theme
 4. `ThemedText` and `ThemedView` components automatically apply theme colors
