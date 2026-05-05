@@ -2,11 +2,12 @@ import { ThemedText } from '@/components/themed-text';
 import { useTimer } from '@/contexts/timer-context';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { getLongestCleanStreak, getRoundDuration } from '@/utils/round-summary';
+import { getMoodCounts } from '@/utils/insights';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import type { Round } from '@/types/timer';
+import type { CheckInEntry, Round } from '@/types/timer';
 
-function RoundCard({ round, isActive }: { round: Round; isActive: boolean }) {
+function RoundCard({ round, isActive, checkIns, today }: { round: Round; isActive: boolean; checkIns: CheckInEntry[]; today: string }) {
   const cardBackground = useThemeColor({}, 'cardBackground');
   const border = useThemeColor({}, 'border');
   const secondary = useThemeColor({}, 'timerSecondary');
@@ -21,6 +22,9 @@ function RoundCard({ round, isActive }: { round: Round; isActive: boolean }) {
     Math.min(duration, 90)
   );
   const totalRelapses = round.relapses.length;
+
+  const moodCounts = getMoodCounts(round, checkIns, today);
+  const totalCheckIns = moodCounts.struggling + moodCounts.neutral + moodCounts.strong;
 
   const startLabel = new Date(round.startDate).toLocaleDateString(undefined, {
     month: 'short',
@@ -55,6 +59,12 @@ function RoundCard({ round, isActive }: { round: Round; isActive: boolean }) {
         {startLabel} – {endLabel}
       </ThemedText>
 
+      {totalCheckIns > 0 && (
+        <ThemedText style={[styles.moodRow, { color: secondary }]}>
+          {'😤'} {moodCounts.struggling}{'  ·  '}{'😐'} {moodCounts.neutral}{'  ·  '}{'💪'} {moodCounts.strong}
+        </ThemedText>
+      )}
+
       <View style={styles.stats}>
         <View style={styles.stat}>
           <ThemedText style={styles.statValue}>{totalRelapses}</ThemedText>
@@ -82,9 +92,10 @@ function RoundCard({ round, isActive }: { round: Round; isActive: boolean }) {
 }
 
 export default function InsightsScreen() {
-  const { allRounds, currentRound } = useTimer();
+  const { allRounds, currentRound, checkIns } = useTimer();
   const backgroundColor = useThemeColor({}, 'background');
   const secondaryColor = useThemeColor({}, 'timerSecondary');
+  const today = new Date().toISOString().split('T')[0];
 
   const sorted = [...allRounds].reverse();
 
@@ -110,7 +121,7 @@ export default function InsightsScreen() {
           </View>
         }
         renderItem={({ item }) => (
-          <RoundCard round={item} isActive={item.id === currentRound?.id} />
+          <RoundCard round={item} isActive={item.id === currentRound?.id} checkIns={checkIns} today={today} />
         )}
       />
     </SafeAreaView>
@@ -150,6 +161,7 @@ const styles = StyleSheet.create({
   },
   activeBadgeText: { fontSize: 11, fontWeight: '600' },
   dateRange: { fontSize: 13 },
+  moodRow: { fontSize: 13 },
   stats: {
     flexDirection: 'row',
     marginTop: 4,

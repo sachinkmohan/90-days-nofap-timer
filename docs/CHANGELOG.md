@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [Unreleased] — Feature: Mood Counts in Insights Tab (NFT-20)
+
+### Added
+- `utils/insights.ts` — `getMoodCounts(round, checkIns, today)` pure helper; filters check-ins by round date range and returns `{ struggling, neutral, strong }` counts. Active rounds use the caller-supplied `today` string as the upper bound instead of reading the clock internally.
+- **Mood counts row** in Insights tab round cards — compact inline line (`😤 N · 😐 N · 💪 N`) rendered between the date range and the stats row; hidden entirely when a round has no check-ins.
+- `CONTEXT.md` — domain glossary capturing Check-in, Mood, and Round terms.
+- `docs/adr/0001-mood-counts-placement-in-insights.md` — records decision to use a compact inline row instead of a fourth stats column (avoids too many numbers in one visual area).
+- `docs/adr/0002-checkins-linked-to-rounds-by-date-range.md` — records decision to keep date-range linking rather than adding `roundId` to `CheckInEntry`; ambiguity only arises in dev mode where rounds share the same calendar day.
+
+### Tests
+- `__tests__/utils/insights.test.ts` — 8 tests covering empty input, out-of-range exclusion, single counts, all three moods, both date boundaries, active-round upper bound, and future check-in exclusion.
+
+---
+
 ## [Unreleased] — Feature 3: Daily Check-in + Journal (NFT-19)
 
 ### Added
