@@ -27,7 +27,7 @@ export function useMultiTap(
 
     if (recent.length >= tapsRequired) {
       tapTimesRef.current = [];
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setTimeout(callback, 0);
     } else {
       tapTimesRef.current = recent;

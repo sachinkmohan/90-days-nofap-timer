@@ -85,7 +85,7 @@ export default function CheckInModal() {
           {/* Mantra banner */}
           <View style={[styles.quoteCard, { backgroundColor: cardBackground, borderColor: border }]}>
             <ThemedText style={[styles.quoteText, { color: secondaryColor }]}>
-              "{quote.text}"
+              {'“'}{quote.text}{'”'}
             </ThemedText>
             <ThemedText style={[styles.quoteAuthor, { color: secondaryColor }]}>
               — {quote.author}
