@@ -38,6 +38,8 @@ export default function RoundSummaryScreen() {
       await finishRound();
       await startNewRound();
       router.replace('/(tabs)');
+    } catch (e) {
+      console.error('Failed to start next round', e);
     } finally {
       isStartingRound.current = false;
     }

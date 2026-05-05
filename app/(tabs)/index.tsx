@@ -6,20 +6,26 @@ import { useTimer } from '@/contexts/timer-context';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
 
 export default function TimerScreen() {
   const router = useRouter();
   const backgroundColor = useThemeColor({}, 'background');
+  const tint = useThemeColor({}, 'tint');
+  const secondary = useThemeColor({}, 'timerSecondary');
+  const celebration = useThemeColor({}, 'celebration');
   const {
     currentRound,
+    roundNumber,
     dayInRound,
     daysSinceLastRelapse,
     lastRelapseTimestamp,
     todayCheckIn,
     isLoading,
+    finishRound,
+    startNewRound,
   } = useTimer();
 
   // Redirect to onboarding if not yet started
@@ -47,6 +53,21 @@ export default function TimerScreen() {
     }
   }, [isLoading, currentRound, dayInRound, router, redirectedToSummary]);
 
+  const isStartingNextRound = useRef(false);
+  const handleStartNextRound = async () => {
+    if (isStartingNextRound.current) return;
+    isStartingNextRound.current = true;
+    try {
+      await finishRound();
+      await startNewRound();
+      router.replace('/(tabs)');
+    } catch (e) {
+      console.error('Failed to start next round', e);
+    } finally {
+      isStartingNextRound.current = false;
+    }
+  };
+
   const handleLogRelapse = () => {
     router.push('/relapse-modal');
   };
@@ -67,6 +88,26 @@ export default function TimerScreen() {
 
   if (!currentRound) {
     return null;
+  }
+
+  if (dayInRound >= 90 && !currentRound.endDate && redirectedToSummary) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor }]}>
+        <View style={styles.roundCompleteContainer}>
+          <ThemedText style={[styles.roundCompleteTitle, { color: celebration }]}>
+            Round complete!
+          </ThemedText>
+          <Pressable style={[styles.startButton, { backgroundColor: tint }]} onPress={handleStartNextRound}>
+            <ThemedText style={styles.startButtonText}>
+              Start Round {roundNumber + 1}
+            </ThemedText>
+          </Pressable>
+          <Pressable onPress={() => router.push('/round-summary')} style={styles.notYetRow}>
+            <ThemedText style={[styles.notYetText, { color: secondary }]}>Not yet</ThemedText>
+          </Pressable>
+        </View>
+      </SafeAreaView>
+    );
   }
 
   return (
@@ -130,5 +171,36 @@ const styles = StyleSheet.create({
     fontSize: 20,
     opacity: 0.5,
     marginTop: -4,
+  },
+  roundCompleteContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    gap: 16,
+  },
+  roundCompleteTitle: {
+    fontSize: 32,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  startButton: {
+    width: '100%',
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  startButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  notYetRow: {
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  notYetText: {
+    fontSize: 14,
   },
 });
