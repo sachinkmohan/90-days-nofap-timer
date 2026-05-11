@@ -7,7 +7,7 @@
 Your 90-day recovery companion
 
 ## Google Play Short Description (80 chars max)
-Break free from porn. Private recovery tracker — no account, no judgment.
+Track your recovery from pornography. Private, simple, one day at a time.
 
 ## Category
 Health & Fitness
