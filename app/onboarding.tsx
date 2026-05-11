@@ -114,7 +114,7 @@ export default function OnboardingScreen() {
         <View style={styles.welcomeContent}>
           <ThemedText style={styles.title}>90 Days</ThemedText>
           <ThemedText style={[styles.subtitle, { color: secondaryColor }]}>
-            Track your journey to freedom.{'\n'}One day at a time.
+            Built to help you break free from porn.{'\n'}One day at a time.
           </ThemedText>
         </View>
         <Pressable

@@ -1,4 +1,4 @@
-# Feature Roadmap — 90 Days NoFap Timer
+# Feature Roadmap — 90 Days Recovery Tracker
 
 Features ranked by impact on **user retention and acquisition**. Each section answers the question: *why would someone open this app tomorrow?*
 

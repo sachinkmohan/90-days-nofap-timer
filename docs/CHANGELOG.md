@@ -6,6 +6,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [Unreleased] — Rebrand: 90 Days Recovery Tracker (NFT-21)
+
+### Changed
+- App renamed from "90 Days NoFap Tracker" to **90 Days Recovery Tracker** following a trademark notice from NoFap LLC requiring removal of the "NoFap" name from all app surfaces and identifiers
+- `app.json` — `name`, `slug`, `scheme` (`ninetydaysrecovery`), `android.package` and `ios.bundleIdentifier` both updated to `com.ninetydays.recoverytracker`; this creates new app listings on both stores (old Play Store listing deleted, new iOS listing required)
+- `package.json` — `name` updated to `90-days-recovery-tracker`
+- `android/app/src/main/AndroidManifest.xml` — deep-link scheme updated to `ninetydaysrecovery`
+- `android/app/src/main/res/values/strings.xml` — `app_name` updated to `90 Days Recovery Tracker`
+- `app/onboarding.tsx` — welcome screen subtitle updated to "Built to help you break free from porn. One day at a time." (explicit on first screen only; all other in-app surfaces use neutral language per explicitness policy)
+- `docs/app-store-submission.md` — fully rewritten: new app name, separate Google Play short description (80 chars) and Apple subtitle (30 chars), expanded full description, updated keywords (removed `nofap`, added `porn recovery` and `quit porn`), store identity note documenting intentional identifier change
+- `docs/feature-roadmap.md`, `docs/mvp-app-plan.md` — titles updated to remove NoFap references
+
+### Added
+- `CONTEXT.md` — four new domain terms: **Relapse** (generic, PMO distinction deferred), **Target User** (porn-recovery specific), **App Name** (rationale for discreet naming), **Explicitness Policy** (explicit in store listing and onboarding only; neutral everywhere else)
+- `docs/adr/0003-porn-specific-scope.md` — records decision to scope the app to pornography recovery only, not a general habit tracker
+- `docs/adr/0004-explicitness-policy.md` — records two-surface explicitness rule: store listing says "porn" explicitly for discoverability; in-app UI is neutral after the onboarding welcome screen
+
+---
+
 ## [Unreleased] — Feature: Mood Counts in Insights Tab (NFT-20)
 
 ### Added
