@@ -1,22 +1,22 @@
 {
   "expo": {
-    "name": "90-days-nofap-tracker",
-    "slug": "90-days-nofap-tracker",
+    "name": "90 Days Recovery Tracker",
+    "slug": "90-days-recovery-tracker",
     "version": "1.5.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon-ninety-days.png",
-    "scheme": "ninetydaysnofaptracker",
+    "scheme": "ninetydaysrecovery",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.ninetydaysnofaptracker.app",
+      "bundleIdentifier": "com.ninetydays.recoverytracker",
       "infoPlist": {
         "NSUserNotificationsUsageDescription": "Get a daily reminder to check in and stay on track."
       }
     },
     "android": {
-      "package": "com.ninetydaysnofaptracker.app",
+      "package": "com.ninetydays.recoverytracker",
       "versionCode": 3,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",

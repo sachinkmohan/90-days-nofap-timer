@@ -1,4 +1,4 @@
-# 90-Day NoFap Timer App - Implementation Plan
+# 90-Day Recovery Tracker App - Implementation Plan
 
 ## Overview
 
