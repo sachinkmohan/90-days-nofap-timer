@@ -12,6 +12,9 @@ Break free from porn. Private recovery tracker — no account, no judgment.
 ## Category
 Health & Fitness
 
+## Store Identity Note
+Both the iOS bundle identifier (`com.ninetydays.recoverytracker`) and Android package (`com.ninetydays.recoverytracker`) are intentionally new — changed from `com.ninetydaysnofaptracker.app` as required by the NoFap LLC trademark notice. This creates new app listings on both stores with no upgrade continuity from the previous versions. The old Play Store listing has been deleted. A new App Store listing is required for iOS.
+
 ---
 
 ## Full Description
@@ -28,7 +31,7 @@ If you have a setback, you log it honestly and start a new round. There is no pu
 
 **Why 90 days?**
 
-Research consistently shows it takes approximately 90 days for the brain to begin meaningfully rewiring itself away from compulsive pornography use. Ninety days is not a magic number — it is the first major checkpoint. A milestone worth working toward, not a finish line.
+Many people find that 90 days marks a meaningful turning point in recovery from compulsive pornography use. Ninety days is not a magic number — it is the first major checkpoint. A milestone worth working toward, not a finish line.
 
 **Built for recovery, not streaks**
 
@@ -56,7 +59,7 @@ Set a daily reminder for morning, afternoon, or evening. A gentle nudge to check
 
 **Fully private**
 
-No account. No sign-in. No server. No data ever leaves your device. Your moods, your notes, your relapse history, your rounds — all of it stays on your phone and nowhere else. Not shared with us, not shared with anyone. Built from the start with local-only storage and no backend.
+Your data never leaves your device — no account, no sign-in, no server. Your moods, notes, relapse history, and rounds stay on your phone and are never shared with us or anyone else. Built from the start with local-only storage and no backend.
 
 **Who this is for**
 
